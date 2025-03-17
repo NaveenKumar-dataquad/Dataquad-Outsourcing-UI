@@ -41,7 +41,11 @@ const SignIn = () => {
             navigate("/dashboard");
           } else if (roles.includes("EMPLOYEE")) {
             navigate("/dashboard");
-          } else if (roles.includes("SUPERADMIN")) {
+          
+          }else if (roles.includes("BDM")) {
+            navigate("/dashboard");
+          }
+           else if (roles.includes("SUPERADMIN")) {
             navigate("/dashboard");
           } else {
             // Default route if no role matches

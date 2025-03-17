@@ -1,0 +1,259 @@
+/* custom-bootstrap.css */
+
+/* Base Variables */
+:root {
+    --primary-color: #2A4DBD;
+    --primary-color-hover: #1B3A8C;
+    --text-color: #333333;
+    --light-bg: #ffffff;
+    --border-radius: 8px;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s;
+  }
+  
+  /* Global Responsive Typography */
+  html {
+    font-size: 16px;
+  }
+  
+  @media (max-width: 1200px) {
+    html {
+      font-size: 15px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    html {
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    html {
+      font-size: 13px;
+    }
+  }
+  
+  /* Custom Button Styles */
+  .btn-custom {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: background-color var(--transition-speed) ease, 
+                transform var(--transition-speed) ease,
+                box-shadow var(--transition-speed) ease;
+  }
+  
+  .btn-custom:hover {
+    background-color: var(--primary-color-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .btn-custom:active {
+    transform: translateY(0);
+  }
+  
+  /* Custom Input Field Styles */
+  .form-control-custom {
+    border: 1px solid #ced4da;
+    border-radius: calc(var(--border-radius) - 2px);
+    padding: 0.75rem 1rem;
+    width: 100%;
+    transition: border-color var(--transition-speed) ease, 
+                box-shadow var(--transition-speed) ease;
+  }
+  
+  .form-control-custom:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(42, 77, 189, 0.25);
+    outline: none;
+  }
+  
+  /* Label styles */
+  .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  
+  /* Custom Form Container */
+  .form-container {
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2.5rem;
+    background-color: var(--light-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+  }
+  
+  /* Custom Card Styles */
+  .card-custom {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-speed) ease, 
+                box-shadow var(--transition-speed) ease;
+    padding: 1.75rem;
+    margin-bottom: 1.75rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .card-custom .card-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .card-custom .card-text {
+    flex-grow: 1;
+    margin-bottom: 1.5rem;
+  }
+  
+  .card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  /* Custom Select Dropdown */
+  .select-custom {
+    border: 1px solid #ced4da;
+    border-radius: calc(var(--border-radius) - 2px);
+    padding: 0.75rem 1rem;
+    transition: border-color var(--transition-speed) ease, 
+                box-shadow var(--transition-speed) ease;
+    width: 100%;
+    background-color: white;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+  }
+  
+  .select-custom:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(42, 77, 189, 0.25);
+    outline: none;
+  }
+  
+  /* Container for multi-device layout */
+  .container-custom {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  
+  /* Responsive Grid System */
+  .row-custom {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -1rem;
+  }
+  
+  .col-custom {
+    padding: 0 1rem;
+    width: 100%;
+  }
+  
+  /* Responsive Media Queries */
+  /* Extra Large Screens (1400px and up) */
+  @media (min-width: 1400px) {
+    .form-container {
+      max-width: 600px;
+      padding: 3rem;
+    }
+    
+    .btn-custom {
+      padding: 0.85rem 1.75rem;
+    }
+  }
+  
+  /* Large Screens (992px - 1399px) */
+  @media (min-width: 992px) and (max-width: 1399px) {
+    .form-container {
+      max-width: 550px;
+    }
+  }
+  
+  /* Medium Screens (768px - 991px) */
+  @media (min-width: 768px) and (max-width: 991px) {
+    .form-container {
+      max-width: 90%;
+      padding: 2rem;
+    }
+  }
+  
+  /* Tablets (576px - 767px) */
+  @media (max-width: 767px) {
+    .btn-custom {
+      padding: 0.6rem 1.25rem;
+    }
+    
+    .form-container {
+      max-width: 90%;
+      padding: 1.75rem;
+    }
+    
+    .card-custom {
+      padding: 1.5rem;
+    }
+  }
+  
+  /* Mobile Phones (Below 576px) */
+  @media (max-width: 575px) {
+    .btn-custom {
+      width: 100%;
+      display: block;
+      padding: 0.65rem 1rem;
+    }
+    
+    .form-control-custom,
+    .select-custom {
+      font-size: 1rem;
+      padding: 0.65rem 0.85rem;
+    }
+    
+    .form-container {
+      max-width: 100%;
+      padding: 1.5rem;
+      border-radius: 0;
+      box-shadow: none;
+      background-color: transparent;
+    }
+    
+    .card-custom {
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+  }
+  
+  /* Small Mobile Phones (Below 375px) */
+  @media (max-width: 374px) {
+    html {
+      font-size: 12px;
+    }
+    
+    .form-container {
+      padding: 1rem;
+    }
+    
+    .card-custom {
+      padding: 1rem;
+    }
+    
+    .form-control-custom,
+    .select-custom {
+      padding: 0.5rem 0.75rem;
+    }
+  }

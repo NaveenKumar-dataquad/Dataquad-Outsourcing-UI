@@ -18,9 +18,6 @@ const AllSubmissions = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const columns = [
-    { key: "candidateId", label: "Candidate ID", type: "text" },
-    { key: "jobId", label: "Job ID", type: "text" },
-    { key: "userId", label: "User ID", type: "text" },
     { key: "fullName", label: "Full Name", type: "text" },
     { key: "emailId", label: "Email", type: "text" },
     { key: "contactNumber", label: "Contact Number", type: "text" },
@@ -34,13 +31,19 @@ const AllSubmissions = () => {
     { key: "currentLocation", label: "Current Location", type: "text" },
     { key: "preferredLocation", label: "Preferred Location", type: "text" },
     { key: "skills", label: "Skills", type: "text" },
-    { key: "communicationSkills", label: "Communication Skills", type: "select" },
+    {
+      key: "communicationSkills",
+      label: "Communication Skills",
+      type: "select",
+    },
     { key: "requiredTechnologiesRating", label: "Tech Rating", type: "text" },
     { key: "overallFeedback", label: "Overall Feedback", type: "text" },
     { key: "userEmail", label: "User Email", type: "text" },
     { key: "interviewStatus", label: "Interview Status", type: "select" },
+    { key: "candidateId", label: "Candidate ID", type: "text" },
+    { key: "jobId", label: "Job ID", type: "text" },
+    { key: "userId", label: "User ID", type: "text" },
   ];
-  
 
   const fetchSubmissions = async () => {
     setIsRefreshing(true);
@@ -62,18 +65,18 @@ const AllSubmissions = () => {
     fetchSubmissions();
   }, []);
 
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <Box
+  //       display="flex"
+  //       justifyContent="center"
+  //       alignItems="center"
+  //       minHeight="100vh"
+  //     >
+  //       <CircularProgress />
+  //     </Box>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -88,29 +91,36 @@ const AllSubmissions = () => {
 
   return (
     <Container
-      maxWidth={false}        // 1) No fixed max width
-      disableGutters         // 2) Remove horizontal padding
+      maxWidth={false} // 1) No fixed max width
+      disableGutters // 2) Remove horizontal padding
       sx={{
-        width: "100%",       // Fill entire viewport width
-        height: "calc(100vh - 20px)",  // Fill entire viewport height
+        width: "100%", // Fill entire viewport width
+        height: "calc(100vh - 20px)", // Fill entire viewport height
         display: "flex",
         flexDirection: "column",
         p: 2,
       }}
     >
       {/* Section Header */}
-      <Box sx={{ flexShrink: 0, mb: 2 }}>
+      {/* <Box sx={{ flexShrink: 0, mb: 2 }}>
         <SectionHeader
           title="Submitted Candidates"
           totalCount={submissions.length}
           onRefresh={fetchSubmissions}
           isRefreshing={isRefreshing}
         />
-      </Box>
+      </Box> */}
 
       {/* DataTable fills the remaining vertical space */}
       <Box sx={{ flexGrow: 1, overflow: "auto" }}>
-        <DataTable data={submissions} columns={columns} pageLimit={10} />
+        <DataTable
+          data={submissions}
+          columns={columns}
+          pageLimit={10}
+          title="Submitted Candidates"
+          onRefresh={fetchSubmissions}
+          isRefreshing={isRefreshing}
+        />
       </Box>
     </Container>
   );

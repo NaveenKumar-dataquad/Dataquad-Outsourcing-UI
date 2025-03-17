@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import BASE_URL from "../config";
 
-// const BASE_URL = "http://192.168.0.246:8111"
+
 
 
 

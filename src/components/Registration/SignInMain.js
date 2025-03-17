@@ -43,17 +43,23 @@ const SignInMain = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     const { email, password } = credentials;
-
+  
     dispatch(loginAsync({ email, password }))
       .then((action) => {
         const roles = action.payload.roles;
         if (roles && roles.length) {
           // Navigate based on the user's role
-          if (roles.includes("ADMIN")) {
+          if (roles.includes("SUPERADMIN")) {
+            navigate("/dashboard");
+          } else if (roles.includes("ADMIN")) {
+            navigate("/dashboard");
+          }
+          else if (roles.includes("BDM")) {
+            navigate("/dashboard");
+          }
+          else if (roles.includes("TEAMLEAD")) {  // ✅ Added TEAMLEAD Role
             navigate("/dashboard");
           } else if (roles.includes("EMPLOYEE")) {
-            navigate("/dashboard");
-          } else if (roles.includes("SUPERADMIN")) {
             navigate("/dashboard");
           } else {
             // Default route if no role matches
@@ -65,6 +71,7 @@ const SignInMain = () => {
         console.log("Login failed:", error);
       });
   };
+  
 
   return (
     <Grid container sx={{ height: "100vh" }}>
@@ -86,7 +93,7 @@ const SignInMain = () => {
         }}
       >
         {showSignUp ? (
-          <SignUpFormMain showSignIn={() => setShowSignUp(false)} /> // ✅ Show SignUpFormMain when Create Account is clicked
+          <SignUpFormMain showSignIn={() => setShowSignUp(false)} /> 
         ) : (
           <Box
             sx={{

@@ -20,9 +20,11 @@ import {
   FormControl,
   FormLabel,
   CircularProgress,
+  InputLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import RecruiterMultiSelect from "../MuiComponents/RecruiterMultiSelect";
 
 const JobEditDialog = ({
   editDialogOpen,
@@ -331,6 +333,21 @@ const JobEditDialog = ({
                 }}
               />
             </Grid>
+            <Grid item xs={12} sm={6} md={4} lg={4}>
+              <TextField
+                name="assignedBy"
+                label="Assigned By"
+                value={editFormData.assignedBy || ""}
+                onChange={handleInputChange}
+                fullWidth
+                variant="outlined"
+                sx={{
+                  backgroundColor: "white",
+                  borderRadius: "5px",
+                }}
+                disabled
+              />
+            </Grid>
 
             {/* Experience Required */}
             <Grid item xs={12} sm={6} md={4} lg={4}>
@@ -346,6 +363,33 @@ const JobEditDialog = ({
                   borderRadius: "5px",
                 }}
               />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4} lg={4}>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                sx={{ backgroundColor: "white", borderRadius: "5px" }}
+              >
+                <InputLabel>Requirement Status</InputLabel>
+                <Select
+                  name="status"
+                  value={editFormData.status || ""}
+                  onChange={handleInputChange}
+                  label="Requirement Status"
+                >
+                  {/* Default value - show previous selected value */}
+                  {editFormData.status && (
+                    <MenuItem value={editFormData.status}>
+                      {editFormData.status}
+                    </MenuItem>
+                  )}
+
+                  {/* Other options */}
+                  <MenuItem value="Closed">Closed</MenuItem>
+                  <MenuItem value="Hold">Hold</MenuItem>
+                  <MenuItem value="InProgress">InProgress</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
 
             {/* Notice Period */}
@@ -433,8 +477,8 @@ const JobEditDialog = ({
               item
               xs={12}
               sm={12}
-              md={12}
-              lg={12}
+              md={6}
+              lg={6}
               sx={{ overflowY: "auto", maxHeight: 400 }}
             >
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -469,6 +513,25 @@ const JobEditDialog = ({
                 ))}
               </Select>
             </Grid>
+
+            {/* <Grid
+              item
+              xs={12}
+              sm={12}
+              md={12}
+              lg={12}
+              sx={{ overflowY: "auto", maxHeight: 400 }}
+            >
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Select Recruiters
+              </Typography>
+              <RecruiterMultiSelect
+                values={values}
+                setFieldValue={setFieldValue}
+                errors={errors}
+                touched={touched}
+              />
+            </Grid> */}
           </Grid>
         </Box>
       </DialogContent>

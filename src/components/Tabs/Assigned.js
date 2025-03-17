@@ -39,7 +39,7 @@ import SectionHeader from "../MuiComponents/SectionHeader";
 
 import BASE_URL from "../../redux/config";
 
-// const BASE_URL = "http://192.168.0.246:8111"
+
 
 const Assigned = () => {
   const theme = useTheme();
@@ -67,6 +67,12 @@ const Assigned = () => {
       { key: "jobTitle", label: "Job Title", type: "text" },
       { key: "jobId", label: "Job ID", type: "select" },
       { key: "clientName", label: "Client Name", type: "text" },
+      {
+        key: "assignedBy",
+        label: "Assigned By",
+        type: "text",
+        render: (row) => (row.assignedBy ? row.assignedBy : " Not_found "),
+      },
       { key: "jobDescription", label: "Job Description" },
       { key: "jobType", label: "Job Type", type: "select" },
       { key: "jobMode", label: "Job Mode", type: "select" },
@@ -82,7 +88,7 @@ const Assigned = () => {
       },
       { key: "status", label: "Status", type: "select" },
       { key: "salaryPackage", label: "Salary Package", type: "text" },
-      { key: "noOfPositions", label: "No. of Positions", type: "text" },
+      { key: "noOfPositions", label: "Positions", type: "text" },
     ];
   };
 
@@ -136,7 +142,7 @@ const Assigned = () => {
               // If JD is a file/image, show download button
               <Tooltip title="Download Job Description">
                 <Link
-                  href={`${BASE_URL}/requirements/download-job-description/${item.jobId}`}
+                  href={`/requirements/download-job-description/${item.jobId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   underline="none"
@@ -159,16 +165,23 @@ const Assigned = () => {
           : "N/A", // Handle missing timestamps
         salaryPackage: item.salaryPackage ? `${item.salaryPackage} LPA` : "N/A",
         submitCandidate: (
-          <Tooltip title="Submit Candidate">
-            <Button
-              onClick={() => handleOpenSubmitDialog(item.jobId)}
-              startIcon={<UploadIcon />}
-              variant="contained"
-              size="small"
-              sx={{ borderRadius: 2 }}
-            >
-              Submit
-            </Button>
+          <Tooltip title={
+            item.status === "Closed" || item.status === "Hold" 
+              ? "Submissions disabled for closed/hold jobs" 
+              : "Submit Candidate"
+          }>
+            <span> {/* Wrapping with span to allow disabled tooltip */}
+              <Button
+                onClick={() => handleOpenSubmitDialog(item.jobId)}
+                startIcon={<UploadIcon />}
+                variant="contained"
+                size="small"
+                sx={{ borderRadius: 2 }}
+                disabled={item.status === "Closed" || item.status === "Closed"}
+              >
+                Submit
+              </Button>
+            </span>
           </Tooltip>
         ),
       }));
@@ -219,6 +232,12 @@ const Assigned = () => {
   };
 
   const handleOpenSubmitDialog = (job) => {
+    // Additional safety check to prevent submissions for CLOSED/HOLD jobs
+    const selectedJob = data.find(item => item.jobId === job);
+    if (selectedJob && (selectedJob.status === "Closed" || selectedJob.status === "Hold")) {
+      return; 
+    }
+    
     setSelectedJobForSubmit(job);
     setOpenSubmitDialog(true);
   };
@@ -258,27 +277,27 @@ const Assigned = () => {
     );
   }
 
-  if (fetchStatus === "loading" && !isRefreshing) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Skeleton
-          variant="rectangular"
-          height={48}
-          sx={{ mb: 2, borderRadius: 1 }}
-        />
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {[...Array(5)].map((_, i) => (
-            <Skeleton
-              key={i}
-              variant="rectangular"
-              height={60}
-              sx={{ borderRadius: 1 }}
-            />
-          ))}
-        </Box>
-      </Box>
-    );
-  }
+  // if (fetchStatus === "loading" && !isRefreshing) {
+  //   return (
+  //     <Box sx={{ p: 3 }}>
+  //       <Skeleton
+  //         variant="rectangular"
+  //         height={48}
+  //         sx={{ mb: 2, borderRadius: 1 }}
+  //       />
+  //       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+  //         {[...Array(5)].map((_, i) => (
+  //           <Skeleton
+  //             key={i}
+  //             variant="rectangular"
+  //             height={60}
+  //             sx={{ borderRadius: 1 }}
+  //           />
+  //         ))}
+  //       </Box>
+  //     </Box>
+  //   );
+  // }
 
   return (
     <Container
@@ -304,13 +323,13 @@ const Assigned = () => {
             p: 1,
           }}
         >
-          <SectionHeader
+          {/* <SectionHeader
             title="Assigned Requirements"
             totalCount={totalCount}
             onRefresh={handleRefresh}
             isRefreshing={isRefreshing}
             icon={<ListAltIcon sx={{ color: "#FFF" }} />}
-          />
+          /> */}
 
           <Box
             sx={{
@@ -346,6 +365,9 @@ const Assigned = () => {
                 data={data}
                 columns={columns}
                 pageLimit={10}
+                title="Assigned Profiles"
+                onRefresh={fetchUserSpecificData}
+                isRefreshing={isRefreshing}
                 noDataMessage={
                   <Box sx={{ py: 4, textAlign: "center" }}>
                     <Typography

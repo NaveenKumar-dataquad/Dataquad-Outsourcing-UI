@@ -24,6 +24,7 @@ import {
   Tooltip,
   Paper,
   Fade,
+  Collapse,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -31,160 +32,21 @@ import { logoutAsync } from "../redux/features/authSlice";
 
 // Icons
 import MenuIcon from "@mui/icons-material/Menu";
-import HomeIcon from "@mui/icons-material/Home";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import WorkIcon from "@mui/icons-material/Work";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import PeopleIcon from "@mui/icons-material/People";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import GroupIcon from "@mui/icons-material/Group";
-import AddIcon from "@mui/icons-material/Add";
-import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
-import InterpreterModeIcon from "@mui/icons-material/InterpreterMode";
-import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import CloseIcon from "@mui/icons-material/Close";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 // Components
-import Requirements from "../components/Requirements/Requirements";
-import Submissions from "../components/Tabs/Submissions";
-import Planned from "../components/Tabs/Planned";
-import Bench from "../components/Tabs/Bench";
-import Assigned from "../components/Tabs/Assigned";
-import AddUser from "../components/Tabs/AddUser";
-import JobForm from "../components/Requirements/JobForm";
-import Interview from "../components/Tabs/Interview";
-import AdminDashboard from "../components/AdminDashboard";
-import AttendanceTracker from "../components/AttendanceTracker";
-import EmployeeTimesheet from "../components/EmployeeTimesheet";
-import UsersList from "../components/Tabs/UsersList";
-import AllSubmissions from "../components/Tabs/AllSubmissions";
-import AllInterviews from "../components/Tabs/AllInterviews";
 import Profile from "../components/Profile";
 import LeaveApplication from "../components/LeaveApplication";
-import logoOrg from "../assets/Mulyafinalwithoutcaption.svg";
-import SubmissionsMain from "../components/Submissions/SubmissionsMain";
-import InterviewMain from "../components/Interviews/InterviewMain";
+import logoOrg from "../assets/dashbaordLogo.svg";
 import UserAvatar from "../utils/UserAvatar";
-import JobFormMain from "../components/JobForm/JobFormMain";
+import TABS_BY_ROLE from "../utils/tabsConfig";
 
-const DRAWER_WIDTH = 240;
-
-const TABS_BY_ROLE = {
-  EMPLOYEE: [
-    {
-      label: "Assigned",
-      value: "ASSIGNED",
-      component: <Assigned />,
-      icon: <WorkIcon />,
-    },
-    {
-      label: "Submissions",
-      value: "SUBMISSIONS",
-      component: <Submissions />,
-      icon: <AssignmentIcon />,
-    },
-    {
-      label: "Interview",
-      value: "INTERVIEW",
-      component: <Interview />,
-      icon: <GroupIcon />,
-    },
-    {
-      label: "Timesheet",
-      value: "TIMESHEET",
-      component: <AttendanceTracker />,
-      icon: <AccessTimeIcon />,
-    },
-  ],
-  ADMIN: [
-    {
-      label: "Timesheet",
-      value: "TIMESHEET",
-      component: <AttendanceTracker />,
-      icon: <AccessTimeIcon />,
-    },
-    {
-      label: "Planned",
-      value: "PLANNED",
-      component: <Planned />,
-      icon: <HomeIcon />,
-    },
-    {
-      label: "Bench",
-      value: "BENCH",
-      component: <Bench />,
-      icon: <PeopleIcon />,
-    },
-    {
-      label: "Add User",
-      value: "ADDUSER",
-      component: <AddUser />,
-      icon: <AddIcon />,
-    },
-  ],
-  SUPERADMIN: [
-    {
-      label: "Dashboard",
-      value: "DASHBOARD",
-      component: <AdminDashboard />,
-      icon: <DashboardIcon />,
-    },
-    {
-      label: "Requirements",
-      value: "REQUIREMENTS",
-      component: <Requirements />,
-      icon: <AssignmentIcon />,
-    },
-    {
-      label: "Job Form",
-      value: "JOB_FORM",
-      component: <JobForm />,
-      icon: <WorkIcon />,
-    },
-    {
-      label: "Users",
-      value: "USERS",
-      component: <UsersList />,
-      icon: <PeopleIcon />,
-    },
-    {
-      label: "Add User",
-      value: "ADDUSER",
-      component: <AddUser />,
-      icon: <AddIcon />,
-    },
-    {
-      label: "Submissions",
-      value: "SUBMISSIONS",
-      component: <AllSubmissions />,
-      icon: <PersonSearchIcon />,
-    },
-    {
-      label: "Interviews",
-      value: "ALLINTERVIEWS",
-      component: <AllInterviews />,
-      icon: <InterpreterModeIcon />,
-    },
-    {
-      label: "Bench",
-      value: "BENCH",
-      component: <Bench />,
-      icon: <HourglassEmptyIcon />,
-    },
-    {
-      label: "Timesheet",
-      value: "TIMESHEET",
-      component: <EmployeeTimesheet />,
-      icon: <AccessTimeIcon />,
-    },
-  ],
-};
-
-// import logoOrg from "../assets/logo-01.png";
+const DRAWER_WIDTH = 300;
 
 const DashboardPage = () => {
   const theme = useTheme();
@@ -194,6 +56,7 @@ const DashboardPage = () => {
 
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   const [selectedTab, setSelectedTab] = useState(null);
+  const [expandedParents, setExpandedParents] = useState({});
   const [anchorEl, setAnchorEl] = useState(null);
   const [openProfileDialog, setOpenProfileDialog] = useState(false);
   const [openLeaveDialog, setOpenLeaveDialog] = useState(false);
@@ -206,6 +69,24 @@ const DashboardPage = () => {
   const userRole = roles?.[0] || "SUPERADMIN";
   const activeTabs = useMemo(() => TABS_BY_ROLE[userRole] || [], [userRole]);
 
+  // Flatten active tabs for finding component to render
+  const flattenedTabs = useMemo(() => {
+    const flattened = [];
+
+    const flatten = (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.children) {
+          flatten(tab.children);
+        } else if (tab.component) {
+          flattened.push(tab);
+        }
+      });
+    };
+
+    flatten(activeTabs);
+    return flattened;
+  }, [activeTabs]);
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/");
@@ -213,10 +94,10 @@ const DashboardPage = () => {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    if (activeTabs.length > 0) {
-      setSelectedTab((prevTab) => prevTab || activeTabs[0].value);
+    if (flattenedTabs.length > 0 && !selectedTab) {
+      setSelectedTab(flattenedTabs[0].value);
     }
-  }, [activeTabs]);
+  }, [flattenedTabs, selectedTab]);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -231,23 +112,18 @@ const DashboardPage = () => {
     }
   };
 
-  // Function to extract user initials
-  const getInitials = () => {
-    if (userId) {
-      const nameParts = userId.split(" "); // Split the name into parts
-      if (nameParts.length > 1) {
-        return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase(); // First letter of First & Last name
-      }
-      return userId[0].toUpperCase(); // Only first letter if single name
-    }
-    return "U"; // Default Initial
+  const toggleParentTab = (parentValue) => {
+    setExpandedParents((prev) => ({
+      ...prev,
+      [parentValue]: !prev[parentValue],
+    }));
   };
 
-  // Function to generate avatar color dynamically
-  const getAvatarColor = () => {
-    const colors = ["#3f51b5", "#f44336", "#009688", "#673ab7", "#ff9800"];
-    const index = userId ? userId.charCodeAt(0) % colors.length : 0;
-    return colors[index];
+  const getSelectedComponent = () => {
+    const selectedTabObj = flattenedTabs.find(
+      (tab) => tab.value === selectedTab
+    );
+    return selectedTabObj?.component || null;
   };
 
   const CustomDialog = ({ open, onClose, title, children }) => (
@@ -284,6 +160,95 @@ const DashboardPage = () => {
     </Dialog>
   );
 
+  // Recursive function to render nested tabs
+  const renderTabs = (tabs, level = 0) => {
+    return tabs.map((tab) => (
+      <React.Fragment key={tab.value}>
+        <ListItem
+          button
+          selected={!tab.isParent && selectedTab === tab.value}
+          onClick={() => {
+            if (tab.isParent) {
+              toggleParentTab(tab.value);
+            } else {
+              setSelectedTab(tab.value);
+              if (isMobile) setDrawerOpen(false);
+            }
+          }}
+          sx={{
+            borderRadius: 2,
+            mb: 0.5,
+            pl: level * 2 + 2, // Indent based on level
+            transition: "all 0.2s",
+            "&.Mui-selected": {
+              backgroundColor: "primary.main",
+              color: "primary.contrastText",
+              "&:hover": {
+                backgroundColor: "primary.dark",
+              },
+              "& .MuiListItemIcon-root": {
+                color: "#FFF",
+              },
+              "& .MuiListItemText-primary": {
+                color: "#FFF",
+              },
+            },
+            "&:hover": {
+              backgroundColor: "primary.light",
+              color: "#FFF",
+              "& .MuiListItemIcon-root": {
+                color: "#FFF",
+              },
+              "& .MuiListItemText-primary": {
+                color: "#FFF",
+              },
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 40,
+              color:
+                !tab.isParent && selectedTab === tab.value
+                  ? "inherit"
+                  : "primary.main",
+            }}
+          >
+            {tab.icon}
+          </ListItemIcon>
+          <ListItemText
+            primary={tab.label}
+            primaryTypographyProps={{
+              fontSize: "0.95rem",
+              fontWeight:
+                !tab.isParent && selectedTab === tab.value ? 600 : 400,
+              sx: { transition: "color 0.2s" },
+            }}
+          />
+          {tab.isParent &&
+            (expandedParents[tab.value] ? (
+              <ExpandLessIcon />
+            ) : (
+              <ExpandMoreIcon />
+            ))}
+        </ListItem>
+
+        {/* Render children if this is a parent tab */}
+        {tab.isParent && (
+          <Collapse
+            in={expandedParents[tab.value]}
+            timeout="auto"
+            unmountOnExit
+          >
+            <List component="div" disablePadding>
+              {renderTabs(tab.children, level + 1)}
+            </List>
+          </Collapse>
+        )}
+      </React.Fragment>
+    ));
+  };
+
   const drawer = (
     <Box
       sx={{
@@ -301,7 +266,7 @@ const DashboardPage = () => {
           alignItems: "center",
           justifyContent: "space-between",
           borderBottom: `1px solid ${theme.palette.divider}`,
-          flexShrink: 0, // Prevents header from shrinking
+          flexShrink: 0,
         }}
       >
         <Typography variant="h6" color="primary" fontWeight="600" sx={{ p: 1 }}>
@@ -322,7 +287,7 @@ const DashboardPage = () => {
           px: 2,
           py: 1,
           "&::-webkit-scrollbar": {
-            width: "8px", // Scrollbar width
+            width: "8px",
           },
           "&::-webkit-scrollbar-thumb": {
             backgroundColor: "#aaa",
@@ -333,64 +298,7 @@ const DashboardPage = () => {
           },
         }}
       >
-        <List>
-          {activeTabs.map((tab) => (
-            <ListItem
-              button
-              key={tab.value}
-              selected={selectedTab === tab.value}
-              onClick={() => {
-                setSelectedTab(tab.value);
-                if (isMobile) setDrawerOpen(false);
-              }}
-              sx={{
-                borderRadius: 2,
-                mb: 0.5,
-                transition: "all 0.2s",
-                "&.Mui-selected": {
-                  backgroundColor: "primary.main",
-                  color: "primary.contrastText",
-                  "&:hover": {
-                    backgroundColor: "primary.dark",
-                  },
-                  "& .MuiListItemIcon-root": {
-                    color: "#FFF",
-                  },
-                  "& .MuiListItemText-primary": {
-                    color: "#FFF",
-                  },
-                },
-                "&:hover": {
-                  backgroundColor: "primary.light",
-                  color: "#FFF",
-                  "& .MuiListItemIcon-root": {
-                    color: "#FFF",
-                  },
-                  "& .MuiListItemText-primary": {
-                    color: "#FFF",
-                  },
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 40,
-                  color: selectedTab === tab.value ? "inherit" : "primary.main",
-                }}
-              >
-                {tab.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={tab.label}
-                primaryTypographyProps={{
-                  fontSize: "0.95rem",
-                  fontWeight: selectedTab === tab.value ? 600 : 400,
-                  sx: { transition: "color 0.2s" }, // Smooth transition for text color change
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
+        <List>{renderTabs(activeTabs)}</List>
       </Box>
     </Box>
   );
@@ -408,7 +316,9 @@ const DashboardPage = () => {
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 2, height: 60 }}
+          >
             <IconButton
               color="black"
               edge="start"
@@ -421,14 +331,6 @@ const DashboardPage = () => {
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-            {/* <Tooltip title="Notifications">
-              <IconButton color="primary">
-                <Badge badgeContent={3} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip> */}
-
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Box sx={{ textAlign: "right" }}>
                 <Typography
@@ -525,12 +427,10 @@ const DashboardPage = () => {
           flexGrow: 1,
           p: 0.5,
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-          mt: "64px",
-          height: "calc(100vh - 64px)",
-          overflowY: "auto", // Enables vertical scrolling
+          mt: "80px",
+          height: "calc(100vh - 80px)",
+          overflowY: "auto",
           backgroundColor: "grey.50",
-
-          /* Custom Scrollbar */
           "&::-webkit-scrollbar": {
             width: "8px",
           },
@@ -547,12 +447,12 @@ const DashboardPage = () => {
           <Paper
             elevation={0}
             sx={{
-              minHeight: "100%", // Allows content to grow
+              minHeight: "100%",
               borderRadius: 2,
               backgroundColor: "background.paper",
             }}
           >
-            {activeTabs.find((tab) => tab.value === selectedTab)?.component || (
+            {getSelectedComponent() || (
               <Box sx={{ p: 1 }}>
                 <Typography color="text.secondary">
                   No content available for the selected tab.
@@ -568,13 +468,13 @@ const DashboardPage = () => {
         open={Boolean(anchorEl)}
         onClose={() => setAnchorEl(null)}
         PaperProps={{
-          elevation: 3, // Slightly increased elevation for depth
+          elevation: 3,
           sx: {
             mt: 1.5,
-            borderRadius: "12px", // Smooth border radius
-            minWidth: 130, // Adjusted for better spacing
+            borderRadius: "12px",
+            minWidth: 130,
             overflow: "hidden",
-            boxShadow: "0px 5px 15px rgba(0,0,0,0.1)", // Subtle shadow
+            boxShadow: "0px 5px 15px rgba(0,0,0,0.1)",
             bgcolor: "background.paper",
             "&:before": {
               content: '""',
@@ -586,7 +486,7 @@ const DashboardPage = () => {
               height: 12,
               bgcolor: "background.paper",
               transform: "translateY(-50%) rotate(45deg)",
-              boxShadow: "-1px -1px 2px rgba(0,0,0,0.1)", // Soft shadow for effect
+              boxShadow: "-1px -1px 2px rgba(0,0,0,0.1)",
               zIndex: 0,
             },
           },

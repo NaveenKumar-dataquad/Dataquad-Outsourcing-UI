@@ -3,61 +3,99 @@ import { Autocomplete, TextField } from "@mui/material";
 import { Field } from "formik";
 
 const qualifications = [
+    // High School and Basic Education
     "High School",
-    "Dicloma",
-    "Bachelor's Degree",
-    "Master's Degree",
-    "Doctorate (PhD)",
-    "Associate Degree",
-    "Certification",
-    "Postgraduate Diploma",
-    "MBA",
-    "B.Sc",
-    "M.Sc",
-    "PhD in Computer Science",
-    "PhD in Engineering",
-    "LLB (Bachelor of Laws)",
-    "LLM (Master of Laws)",
-    "MD (Doctor of Medicine)",
-    "DDS (Doctor of Dental Surgery)",
-    "DVM (Doctor of Veterinary Medicine)",
-    "Pharm.D (Doctor of Pharmacy)",
-    "BBA (Bachelor of Business Administration)",
-    "BFA (Bachelor of Fine Arts)",
-    "MFA (Master of Fine Arts)",
-    "B.Ed (Bachelor of Education)",
-    "M.Ed (Master of Education)",
-    "B.Tech (Bachelor of Technology)",
-    "M.Tech (Master of Technology)",
-    "B.Arch (Bachelor of Architecture)",
-    "M.Arch (Master of Architecture)",
-    "B.Com (Bachelor of Commerce)",
-    "M.Com (Master of Commerce)",
-    "B.A (Bachelor of Arts)",
-    "M.A (Master of Arts)",
-    "B.S (Bachelor of Science)",
-    "M.S (Master of Science)",
-    "B.N (Bachelor of Nursing)",
-    "M.N (Master of Nursing)",
-    "B.Pharm (Bachelor of Pharmacy)",
-    "M.Pharm (Master of Pharmacy)",
-    "BDS (Bachelor of Dental Surgery)",
-    "BVSc (Bachelor of Veterinary Science)",
-    "PGDM (Post Graduate Diploma in Management)",
-    "PGDBA (Post Graduate Diploma in Business Administration)",
-    "CFA (Chartered Financial Analyst)",
-    "CPA (Certified Public Accountant)",
-    "ACCA (Association of Chartered Certified Accountants)",
-    "PMP (Project Management Professional)",
-    "CISSP (Certified Information Systems Security Professional)",
-    "CEH (Certified Ethical Hacker)",
-    "CCNA (Cisco Certified Network Associate)",
+    "GED (General Educational Development)",
+    
+    // Associate Degrees
+    "Associate of Arts (A.A)",
+    "Associate of Science (A.S)",
+    "Associate of Applied Science (A.A.S)",
+    "Associate of Business Administration (A.B.A)",
+    "Associate of Engineering (A.E)",
+    
+    // Bachelor's Degrees
+    "Bachelor of Arts (B.A)",
+    "Bachelor of Science (B.S)",
+    "Bachelor of Business Administration (BBA)",
+    "Bachelor of Technology (B.Tech)",
+    "Bachelor of Commerce (B.Com)",
+    "Bachelor of Engineering (B.E)",
+    "Bachelor of Computer Applications (BCA)",
+    "Bachelor of Architecture (B.Arch)",
+    "Bachelor of Fine Arts (BFA)",
+    "Bachelor of Education (B.Ed)",
+    "Bachelor of Laws (LLB)",
+    "Bachelor of Medicine, Bachelor of Surgery (MBBS)",
+    "Bachelor of Dental Surgery (BDS)",
+    "Bachelor of Pharmacy (B.Pharm)",
+    "Bachelor of Nursing (B.N)",
+    "Bachelor of Veterinary Science (BVSc)",
+    
+    // Master's Degrees
+    "Master of Arts (M.A)",
+    "Master of Science (M.S)",
+    "Master of Business Administration (MBA)",
+    "Master of Technology (M.Tech)",
+    "Master of Commerce (M.Com)",
+    "Master of Computer Applications (MCA)",
+    "Master of Engineering (M.E)",
+    "Master of Architecture (M.Arch)",
+    "Master of Fine Arts (MFA)",
+    "Master of Education (M.Ed)",
+    "Master of Laws (LLM)",
+    "Master of Medicine (MD)",
+    "Master of Dental Surgery (MDS)",
+    "Master of Pharmacy (M.Pharm)",
+    "Master of Nursing (M.N)",
+    "Master of Public Health (MPH)",
+    "Master of Social Work (MSW)",
+    "Master of International Business (MIB)",
+    
+    // Doctoral Degrees
+    "Doctor of Philosophy (PhD)",
+    "Doctor of Philosophy in Computer Science (PhD)",
+    "Doctor of Philosophy in Engineering (PhD)",
+    "Doctor of Business Administration (DBA)",
+    "Doctor of Medicine (MD)",
+    "Doctor of Dental Surgery (DDS)",
+    "Doctor of Veterinary Medicine (DVM)",
+    "Doctor of Pharmacy (Pharm.D)",
+    "Doctor of Education (Ed.D)",
+    "Doctor of Laws (JD)",
+    "Doctor of Public Health (DrPH)",
+    
+    // Professional Certifications
+    "Chartered Accountant (CA)",
+    "Certified Public Accountant (CPA)",
+    "Chartered Financial Analyst (CFA)",
+    "Project Management Professional (PMP)",
+    "Certified Information Systems Security Professional (CISSP)",
+    "Certified Ethical Hacker (CEH)",
+    "Certified ScrumMaster (CSM)",
+    
+    // Technical Certifications
     "AWS Certified Solutions Architect",
     "Microsoft Certified: Azure Administrator",
     "Google Certified Professional Cloud Architect",
-    "other",
-  ];
-  
+    "Cisco Certified Network Associate (CCNA)",
+    "CompTIA A+ Certification",
+    "Red Hat Certified Engineer (RHCE)",
+    
+    // Specialized Diplomas and Postgraduate Certifications
+    "Postgraduate Diploma in Management (PGDM)",
+    "Postgraduate Diploma in Business Administration (PGDBA)",
+    "Advanced Diploma in Software Development",
+    "Advanced Diploma in Digital Marketing",
+    "Advanced Diploma in Artificial Intelligence",
+    
+    // Other Options
+    "Professional Training Certificate",
+    "Industry-Specific Certification",
+    "Other",
+    "Not Specified"
+];
+
 const QualificationDropdown = ({ field, form }) => {
   return (
     <Autocomplete
@@ -77,7 +115,6 @@ const QualificationDropdown = ({ field, form }) => {
             "& .MuiOutlinedInput-root": {
               borderRadius: 2,
             },
-           
           }}
         />
       )}

@@ -5,7 +5,6 @@ import BASE_URL from "../config";
 
 
 
-
 // Initial state
 const initialState = {
   formData: {

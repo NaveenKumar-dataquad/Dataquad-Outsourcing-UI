@@ -37,6 +37,9 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import SectionHeader from "../MuiComponents/SectionHeader";
 import BASE_URL from "../../redux/config";
 
+
+
+
 const Submissions = () => {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -369,38 +372,37 @@ const Submissions = () => {
   const updateCandidate = async () => {
     try {
       setLoading(true);
-      const { candidateId, resumeFile, ...otherFields } = editingCandidate;
-
+      const { candidateId, resumeFile, emailId, ...otherFields } = editingCandidate; // Extract emailId
+  
       const formData = new FormData();
-
+  
       const numericFields = {
         totalExperience: parseFloat(otherFields.totalExperience),
         relevantExperience: parseFloat(otherFields.relevantExperience),
-        requiredTechnologiesRating: parseFloat(
-          otherFields.requiredTechnologiesRating
-        ),
+        requiredTechnologiesRating: parseFloat(otherFields.requiredTechnologiesRating),
       };
-
+  
       Object.entries(numericFields).forEach(([key, value]) => {
         if (!isNaN(value)) {
           formData.append(key, value);
         }
       });
-
+  
       Object.entries(otherFields).forEach(([key, value]) => {
-        if (
-          value !== null &&
-          value !== undefined &&
-          !Object.keys(numericFields).includes(key)
-        ) {
+        if (value !== null && value !== undefined && !Object.keys(numericFields).includes(key)) {
           formData.append(key, value.toString());
         }
       });
-
+  
+      // ✅ Send `candidateEmailId` instead of `emailId`
+      if (emailId) {
+        formData.append("candidateEmailId", emailId);
+      }
+  
       if (resumeFile instanceof File) {
         formData.append("resumeFile", resumeFile);
       }
-
+  
       const response = await axios.put(
         `${BASE_URL}/candidate/candidatesubmissions/${candidateId}`,
         formData,
@@ -410,20 +412,21 @@ const Submissions = () => {
           },
         }
       );
-
+  
       const { message, payload } = response.data;
-
+  
       const successMessage = `${message}
       Candidate ID: ${payload?.candidateId}
       Employee ID: ${payload?.employeeId}
-      Job ID: ${payload?.jobId}`;
-
+      Job ID: ${payload?.jobId}
+      Candidate Email ID: ${payload?.candidateEmailId}`; // ✅ Updated success message
+  
       setSnackbar({
         open: true,
         message: successMessage,
         severity: "success",
       });
-
+  
       handleCloseEditDialog();
       fetchSubmissionData();
     } catch (error) {
@@ -438,6 +441,7 @@ const Submissions = () => {
       setLoading(false);
     }
   };
+  
 
   const deleteCandidate = async () => {
     try {
@@ -478,13 +482,13 @@ const Submissions = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+  //       <CircularProgress />
+  //     </Box>
+  //   );
+  // }
 
   return (
     <Container
@@ -498,16 +502,17 @@ const Submissions = () => {
         p: 2,
       }}
     >
-      <SectionHeader
+      {/* <SectionHeader
         title="Candidate Submissions"
         totalCount={data.length}
         onRefresh={fetchSubmissionData}
         isRefreshing={loading}
         icon={<GroupsIcon sx={{ color: "#1B5E20" }} />}
-      />
+      /> */}
 
       
-        <DataTable data={data} columns={columns} pageLimit={5} />
+        <DataTable data={data} columns={columns} pageLimit={10} title="Submissions" onRefresh={fetchSubmissionData}
+                isRefreshing={loading}/>
      
 
       {/* Edit Dialog */}
@@ -573,7 +578,7 @@ const Submissions = () => {
                     return null;
 
                   return (
-                    <Grid item xs={12} sm={6} key={key}>
+                    <Grid item xs={12} sm={6} md={4} key={key}>
                       {key === "interviewStatus" ? (
                         <FormControl fullWidth>
                           <InputLabel>Interview Status</InputLabel>

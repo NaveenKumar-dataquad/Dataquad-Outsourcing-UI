@@ -2,7 +2,7 @@ import { Box, Typography, Grid } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import React from "react";
-import logo from "../../assets/Mulyafinalwithoutbg.svg";
+import logo from "../../assets/Mulyafinalnew-Copy.svg";
 
 const SignUpFromLeftSide = () => {
   const theme = useTheme();
@@ -24,7 +24,7 @@ const SignUpFromLeftSide = () => {
         }}
       >
        
-        <Box sx={{ mb: 2, maxWidth: "60%", width: "auto" }}>
+        <Box sx={{ mb: 2, maxWidth: "80%", width: "auto" }}>
           <img
             src={logo}
             alt="Logo"

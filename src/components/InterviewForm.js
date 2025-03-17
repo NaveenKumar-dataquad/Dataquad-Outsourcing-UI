@@ -25,6 +25,10 @@ import {
 import { Check } from "lucide-react";
 import dayjs from "dayjs";
 
+
+const oneMonthAgo = new Date();
+oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
 // Validation Schema
 const validationSchema = Yup.object().shape({
   jobId: Yup.string().required("Job ID is required"),
@@ -45,9 +49,9 @@ const validationSchema = Yup.object().shape({
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       "Invalid email format (e.g., clientname@something.com)"
     ),
-  interviewDateTime: Yup.date()
+    interviewDateTime: Yup.date()
     .required("Interview date and time is required")
-    .min(new Date(), "Interview date and time must be in the future"),
+    .min(oneMonthAgo, "Interview date and time must be within the last month or in the future"),
   duration: Yup.number()
     .required("Duration is required")
     .min(15, "Duration must be at least 15 minutes")
@@ -58,11 +62,11 @@ const validationSchema = Yup.object().shape({
     .matches(/^(https?:\/\/[^\s$.?#].[^\s]*)?$/, "Must be a valid URL"),
   interviewLevel: Yup.string()
     .required("Interview level is required")
-    .oneOf(["Internal", "External"]),
+    .oneOf(["INTERNAL", "EXTERNAL"]),
   externalInterviewDetails: Yup.string().when(
     "interviewLevel",
     (interviewLevel, schema) => {
-      return interviewLevel === "External"
+      return interviewLevel === "EXTERNAL"
         ? schema.required("External interview details are required")
         : schema;
     }
@@ -98,7 +102,7 @@ const InterviewForm = ({
     interviewDateTime: "",
     duration: "",
     zoomLink: "",
-    interviewLevel: "Internal",
+    interviewLevel: "INTERNAL",
     externalInterviewDetails: "",
     interviewScheduledTimestamp: null,
   };
@@ -306,12 +310,12 @@ const InterviewForm = ({
                       {({ field }) => (
                         <RadioGroup {...field} row>
                           <FormControlLabel
-                            value="Internal"
+                            value="INTERNAL"
                             control={<Radio />}
                             label="Internal"
                           />
                           <FormControlLabel
-                            value="External"
+                            value="EXTERNAL"
                             control={<Radio />}
                             label="External"
                           />
@@ -320,7 +324,7 @@ const InterviewForm = ({
                     </Field>
                   </FormControl>
                 </Grid>
-                {values.interviewLevel === "External" && (
+                {values.interviewLevel === "EXTERNAL" && (
                   <Grid item xs={12}>
                     <Field
                       name="externalInterviewDetails"

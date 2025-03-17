@@ -14,8 +14,6 @@ import {
   DialogContent,
   DialogActions,
   Typography,
-  TextField,
-  InputAdornment,
   Box,
   Grid,
   IconButton,
@@ -28,6 +26,8 @@ import {
   Tooltip,
   Popover,
   Divider,
+  TextField,
+  InputAdornment
 } from "@mui/material";
 import FirstPageRoundedIcon from "@mui/icons-material/FirstPageRounded";
 import LastPageRoundedIcon from "@mui/icons-material/LastPageRounded";
@@ -40,9 +40,17 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
-import { Description } from "@mui/icons-material";
+import SectionHeader from "./SectionHeader"; // Import the SectionHeader component
+import CircularProgress from '@mui/material/CircularProgress';
 
-const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
+const DataTable = ({ 
+  data: initialData, 
+  columns, 
+  pageLimit = 20, 
+  title = "section header", 
+  onRefresh, 
+  isRefreshing = false
+}) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(pageLimit);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,6 +58,18 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState(initialData);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleRefresh = () => {
+    // If onRefresh is provided as a prop, call it
+    if (onRefresh && typeof onRefresh === 'function') {
+      onRefresh();
+    }
+
+    // Reset search and filters
+    setSearchQuery("");
+    setFilters({});
+    setPage(0);
+  };
 
   // State for column filters
   const [filters, setFilters] = useState({});
@@ -202,8 +222,6 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
     if (!column || !column.type) return null; // Only apply filter if column has a type
 
     if (column.type === "select") {
-      
-
       const filteredValues = uniqueValues[column.key]
         ? uniqueValues[column.key].filter((value) =>
             value.toLowerCase().includes(searchTerm.toLowerCase())
@@ -284,75 +302,66 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
     }
 
     if (column.type === "text") {
-  return (
-    <Paper
-      sx={{
-        p: 2,
-        minWidth: 250,
-        borderRadius: 2,
-        boxShadow: 3,
-        mb: 2,
-      }}
-    >
-      <Typography variant="subtitle2" gutterBottom>
-        Filter by {column.label}
-      </Typography>
-      <TextField
-        fullWidth
-        size="small"
-        variant="outlined"
-        placeholder={`Search ${column.label}...`}
-        value={filters[column.key] || ""}
-        onChange={(e) => handleFilterChange(column, e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" color="action" />
-            </InputAdornment>
-          ),
-          endAdornment: filters[column.key] ? (
-            <InputAdornment position="end">
-              <IconButton
-                edge="end"
-                size="small"
-                onClick={() => handleClearFilter(column.key)}
-                sx={{
-                  transition: "transform 0.3s ease",
-                  "&:hover": { transform: "scale(1.1)" },
-                }}
-              >
-                <CloseIcon fontSize="small" color="action" />
-              </IconButton>
-            </InputAdornment>
-          ) : null,
-        }}
-      />
-      <Box
-        sx={{
-          mt: 2,
-          display: "flex",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Button
-          size="small"
-          variant="contained"
-          onClick={handleFilterClose}
-          sx={{
-            bgcolor: "#00796b",
-            color: "white",
-            textTransform: "none",
-            borderRadius: 2,
-            "&:hover": { bgcolor: "#00695c" },
-          }}
-        >
-          Apply Filter
-        </Button>
-      </Box>
-    </Paper>
-  );
-}
-
+      return (
+        <Box sx={{ p: 2, minWidth: 200 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Filter by {column.label}
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            variant="outlined"
+            placeholder={`Search ${column.label}...`}
+            value={filters[column.key] || ""}
+            onChange={(e) => handleFilterChange(column, e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" color="action" />
+                </InputAdornment>
+              ),
+              endAdornment: filters[column.key] ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    size="small"
+                    onClick={() => handleClearFilter(column.key)}
+                    sx={{
+                      transition: "transform 0.3s ease",
+                      "&:hover": { transform: "scale(1.1)" },
+                    }}
+                  >
+                    <CloseIcon fontSize="small" color="action" />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            }}
+          />
+          <Box
+            sx={{
+              mt: 2,
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
+            <Button
+              size="small"
+              variant="contained"
+              onClick={handleFilterClose}
+              sx={{
+                bgcolor: "#00796b",
+                color: "white",
+                textTransform: "none",
+                borderRadius: 2,
+                "&:hover": { bgcolor: "#00695c" },
+              }}
+            >
+              Apply Filter
+            </Button>
+          </Box>
+        </Box>
+      );
+    }
 
     return null; // If column type is not defined, do not render any filter
   };
@@ -360,329 +369,304 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
   return (
     <Box
       sx={{
-        width: "100%",
-        height: "100%",
+        width: "100%",       
+        height: "calc(100vh - 1vh)", 
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <Grid container spacing={2} sx={{mb:1}}>
-        <Grid item xs={12} sm={6} md={4} lg={3}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Search in all columns..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-              endAdornment: searchQuery && (
-                <InputAdornment position="end">
-                  <CloseIcon
-                    sx={{ cursor: "pointer", color: "#00796b" }}
-                    onClick={() => setSearchQuery("")}
-                  />
-                </InputAdornment>
-              ),
-            }}
+      {/* Section Header with Search Field */}
+      <SectionHeader
+        title={title}
+        totalCount={filteredData.length}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        searchQuery={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+      />
+  
+      {/* Show Loader Spinner if Refreshing */}
+      {isRefreshing ? (
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {/* Filters and Table */}
+          <Grid container spacing={2} sx={{ mb: 1 }}>
+            {getActiveFilterCount() > 0 && (
+              <Grid item xs="auto" sx={{ display: "flex", alignItems: "center" }}>
+                <Chip
+                  icon={<FilterListIcon />}
+                  label={`${getActiveFilterCount()} active filter${
+                    getActiveFilterCount() > 1 ? "s" : ""
+                  }`}
+                  onDelete={handleClearAllFilters}
+                  deleteIcon={<ClearAllIcon />}
+                  sx={{
+                    bgcolor: "#e0f2f1",
+                    color: "#00796b",
+                    "& .MuiChip-deleteIcon": {
+                      color: "#e57373",
+                      "&:hover": { color: "#f44336" },
+                    },
+                  }}
+                />
+              </Grid>
+            )}
+          </Grid>
+  
+          <Paper
             sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                backgroundColor: "#ffffff",
-                "& fieldset": { borderColor: "#00796b" },
-                "&:hover fieldset": { borderColor: "#00796b" },
-                "&.Mui-focused fieldset": { borderColor: "#00796b" },
-              },
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              border: "1px solid #ccc",
+              borderRadius: 2,
+              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+              overflow: "hidden",
+              mt: 1.3
             }}
-          />
-        </Grid>
-        {getActiveFilterCount() > 0 && (
-          <Grid item xs="auto" sx={{ display: "flex", alignItems: "center" }}>
-            <Chip
-              icon={<FilterListIcon />}
-              label={`${getActiveFilterCount()} active filter${
-                getActiveFilterCount() > 1 ? "s" : ""
-              }`}
-              onDelete={handleClearAllFilters}
-              deleteIcon={<ClearAllIcon />}
+          >
+            <TableContainer
               sx={{
-                bgcolor: "#e0f2f1",
-                color: "#00796b",
-                "& .MuiChip-deleteIcon": {
-                  color: "#e57373",
-                  "&:hover": { color: "#f44336" },
+                flexGrow: 1,
+                height: 500, // Fixed height to ensure pagination is visible
+                overflow: "auto",
+                "&::-webkit-scrollbar": {
+                  width: "8px",
+                  height: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  background: "#f1f1f1",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "#888",
+                  borderRadius: "4px",
+                },
+                "& .MuiTableCell-root": {
+                  borderBottom: "1px solid #ccc",
+                  borderRight: "1px solid #ccc",
+                },
+              }}
+            >
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {columns.map((column, index) => (
+                      <TableCell
+                        key={column.key}
+                        sx={{
+                          backgroundColor: "#00796b",
+                          color: "#fff",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          padding: 2,
+                          whiteSpace: "normal",
+                          wordWrap: "break-word",
+                          maxWidth: "130px",
+                          overflow: "hidden",
+                          // Fixed border styling - consistent across all header cells
+                          borderRight: index === columns.length - 1 ? "none" : "1px solid rgba(255, 255, 255, 0.2)",
+                          "&:last-child": {
+                            borderRight: "none",
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {column.label}
+  
+                          {/* Show filter icon only if column has a type */}
+                          {column.type && (
+                            <Tooltip title={`Filter ${column.label}`}>
+                              <IconButton
+                                size="small"
+                                onClick={(e) => handleFilterClick(e, column)}
+                                sx={{
+                                  ml: 1,
+                                  color: filters[column.key]
+                                    ? "#F6C90E"
+                                    : "inherit",
+                                }}
+                              >
+                                {filters[column.key] ? (
+                                  <FilterAltIcon fontSize="small" />
+                                ) : (
+                                  <FilterListIcon fontSize="small" />
+                                )}
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+  
+                <TableBody>
+                  {filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} align="center">
+                        <Box sx={{ py: 3 }}>
+                          <Typography variant="body1" sx={{ color: "#777" }}>
+                            No records found
+                          </Typography>
+                          {(searchQuery || getActiveFilterCount() > 0) && (
+                            <Button
+                              variant="text"
+                              startIcon={<ClearAllIcon />}
+                              onClick={() => {
+                                setSearchQuery("");
+                                setFilters({});
+                              }}
+                              sx={{ mt: 2, color: "#00796b" }}
+                            >
+                              Clear all filters
+                            </Button>
+                          )}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredData
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((row, rowIndex) => (
+                        <TableRow
+                          key={rowIndex}
+                          sx={{
+                            backgroundColor:
+                              rowIndex % 2 === 0
+                                ? "#f9f9f9"
+                                : "rgba(192, 238, 211, 0.34)",
+                            "&:hover": {
+                              backgroundColor: "rgba(0, 121, 107, 0.04)",
+                            },
+                          }}
+                        >
+                          {columns.map((column, colIndex) => {
+                            if (column.render) {
+                              return (
+                                <TableCell
+                                  key={column.key}
+                                  sx={{
+                                    padding: 2,
+                                    textAlign: "left",
+                                    borderRight: colIndex === columns.length - 1 ? "none" : "1px solid #ccc",
+                                  }}
+                                >
+                                  {column.render(row)}
+                                </TableCell>
+                              );
+                            }
+  
+                            const cellData = row[column.key];
+  
+                            return (
+                              <TableCell
+                                key={column.key}
+                                sx={{
+                                  padding: 2,
+                                  textAlign: "left",
+                                  whiteSpace: "nowrap",
+                                  maxWidth: "200px",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  borderRight: colIndex === columns.length - 1 ? "none" : "1px solid #ccc",
+                                }}
+                              >
+                                {cellData && String(cellData).length > 15 ? (
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {highlightText(
+                                        String(cellData).slice(0, 15),
+                                        searchQuery
+                                      )}
+                                      ...
+                                    </Typography>
+                                    {/* <Tooltip title="View full content">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleDialogOpen(cellData)}
+                                        sx={{
+                                          color: "#00796b",
+                                          p: 0.5,
+                                        }}
+                                      >
+                                        <VisibilityIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip> */}
+                                  </Box>
+                                ) : (
+                                  highlightText(cellData, searchQuery)
+                                )}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              component="div"
+              count={filteredData.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[10, 20, 30, 40, 50]}
+              sx={{
+                borderTop: "1px solid #ccc",
+                backgroundColor: "#fff",
+              }}
+              slotProps={{
+                select: {
+                  "aria-label": "Rows per page",
+                },
+                actions: {
+                  showFirstButton: true,
+                  showLastButton: true,
+                  slots: {
+                    firstPageIcon: FirstPageRoundedIcon,
+                    lastPageIcon: LastPageRoundedIcon,
+                    nextPageIcon: ChevronRightRoundedIcon,
+                    backPageIcon: ChevronLeftRoundedIcon,
+                  },
                 },
               }}
             />
-          </Grid>
-        )}
-      </Grid>
-
-      <Paper
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          border: "1px solid #ccc",
-          borderRadius: 2,
-          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-          overflow: "hidden",
-        }}
-      >
-        <TableContainer
-          sx={{
-            flexGrow: 1,
-            height: 450, // Fixed height to ensure pagination is visible
-            overflow: "auto",
-            "&::-webkit-scrollbar": {
-              width: "8px",
-              height: "8px",
-            },
-            "&::-webkit-scrollbar-track": {
-              background: "#f1f1f1",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "#888",
-              borderRadius: "4px",
-            },
-            "& .MuiTableCell-root": {
-              borderBottom: "1px solid #ccc",
-              borderRight: "1px solid #ccc",
-            },
-          }}
-        >
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                {/* Serial Number Column */}
-                <TableCell
-                  sx={{
-                    backgroundColor: "#00796b",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    padding: 2.5,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  S.No
-                </TableCell>
-
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.key}
-                    sx={{
-                      backgroundColor: "#00796b",
-                      color: "#fff",
-                      fontWeight: "bold",
-                      textAlign: "center",
-                      padding: 2,
-                      whiteSpace: "normal",
-                      wordWrap: "break-word",
-                      maxWidth: "130px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {column.label}
-
-                      {/* Show filter icon only if column has a type */}
-                      {column.type && (
-                        <Tooltip title={`Filter ${column.label}`}>
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleFilterClick(e, column)}
-                            sx={{
-                              ml: 1,
-                              color: filters[column.key]
-                                ? "#F6C90E"
-                                : "inherit",
-                            }}
-                          >
-                            {filters[column.key] ? (
-                              <FilterAltIcon fontSize="small" />
-                            ) : (
-                              <FilterListIcon fontSize="small" />
-                            )}
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-              {filteredData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length + 1} align="center">
-                    <Box sx={{ py: 3 }}>
-                      <Typography variant="body1" sx={{ color: "#777" }}>
-                        No records found
-                      </Typography>
-                      {(searchQuery || getActiveFilterCount() > 0) && (
-                        <Button
-                          variant="text"
-                          startIcon={<ClearAllIcon />}
-                          onClick={() => {
-                            setSearchQuery("");
-                            setFilters({});
-                          }}
-                          sx={{ mt: 2, color: "#00796b" }}
-                        >
-                          Clear all filters
-                        </Button>
-                      )}
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredData
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row, index) => (
-                    <TableRow
-                      key={index}
-                      sx={{
-                        backgroundColor:
-                          index % 2 === 0
-                            ? "#f9f9f9"
-                            : "rgba(192, 238, 211, 0.34)",
-                        "&:hover": {
-                          backgroundColor: "rgba(0, 121, 107, 0.04)",
-                        },
-                      }}
-                    >
-                      <TableCell
-                        sx={{ textAlign: "center", fontWeight: "bold" }}
-                      >
-                        {page * rowsPerPage + index + 1}
-                      </TableCell>
-
-                      {columns.map((column) => {
-                        if (column.render) {
-                          return (
-                            <TableCell
-                              key={column.key}
-                              sx={{
-                                padding: 2,
-                                textAlign: "left",
-                              }}
-                            >
-                              {column.render(row)}
-                            </TableCell>
-                          );
-                        }
-
-                        const cellData = row[column.key];
-
-                        return (
-                          <TableCell
-                            key={column.key}
-                            sx={{
-                              padding: 2,
-                              textAlign: "left",
-                              whiteSpace: "nowrap",
-                              maxWidth: "200px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {cellData && String(cellData).length > 15 ? (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 1,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  {highlightText(
-                                    String(cellData).slice(0, 15),
-                                    searchQuery
-                                  )}
-                                  ...
-                                </Typography>
-
-                                {/* <Button
-                                  variant="text"
-                                  onClick={() => handleDialogOpen(cellData)}
-                                  sx={{
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    ml: 1,
-                                    minWidth: "auto",
-                                    p: "2px 8px",
-                                    color: "#00796b",
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                 
-                                  <span style={{ fontSize: "0.75rem" }}>
-                                    more
-                                  </span>
-                                </Button> */}
-                              </Box>
-                            ) : (
-                              highlightText(cellData, searchQuery)
-                            )}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component="div"
-          count={filteredData.length}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[10, 20, 30, 40, 50]}
-          sx={{
-            borderTop: "1px solid #ccc",
-            backgroundColor: "#fff",
-          }}
-          slotProps={{
-            select: {
-              "aria-label": "Rows per page",
-            },
-            actions: {
-              showFirstButton: true,
-              showLastButton: true,
-              slots: {
-                firstPageIcon: FirstPageRoundedIcon,
-                lastPageIcon: LastPageRoundedIcon,
-                nextPageIcon: ChevronRightRoundedIcon,
-                backPageIcon: ChevronLeftRoundedIcon,
-              },
-            },
-          }}
-        />
-      </Paper>
-
+          </Paper>
+        </>
+      )}
+  
       {/* Column Filter Popover */}
       <Popover
         open={Boolean(filterAnchorEl)}
@@ -706,7 +690,7 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
       >
         {renderFilterContent(activeFilterColumn)}
       </Popover>
-
+  
       {/* Full Content Dialog */}
       <Dialog
         open={dialogOpen}
@@ -731,7 +715,7 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
             justifyContent: "space-between",
             alignItems: "center",
             padding: "12px 16px",
-            borderRadius: 2,
+            borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
           }}
         >
           {"Full Content"}
@@ -743,7 +727,7 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-
+  
         {/* Dialog Content */}
         <DialogContent dividers sx={{ padding: "16px" }}>
           <Typography
@@ -758,7 +742,7 @@ const DataTable = ({ data: initialData, columns, pageLimit = 10 }) => {
             {highlightText(dialogContent, searchQuery)}
           </Typography>
         </DialogContent>
-
+  
         {/* Dialog Actions */}
         <DialogActions sx={{ padding: "12px 16px", justifyContent: "end" }}>
           <Button

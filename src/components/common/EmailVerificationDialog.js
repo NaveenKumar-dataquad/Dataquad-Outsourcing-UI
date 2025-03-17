@@ -21,7 +21,6 @@ import axios from "axios";
 import BASE_URL from "../../redux/config";
 
 
-
 // Styled components
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": {
@@ -106,12 +105,20 @@ const EmailVerificationDialog = ({
         setError("");
         setSuccessMessage(response.data.message || "OTP sent successfully!"); 
       } else {
-        throw new Error(response.data.message || "Failed to send OTP");
+        throw new Error(response.data.message);
       }
     } catch (err) {
       console.error("Error details:", err.response?.data || err);
-      setError(err.response?.data?.message || "Failed to send OTP. Please try again.");
-    } finally {
+  
+      // Extract error message safely
+      const errorMessage = err.response?.data?.message 
+          || err.response?.data?.error
+          || err.message
+          || "Failed to send OTP. Please try again.";
+  
+      setError(errorMessage);
+  }
+   finally {
       setIsSending(false);
     }
   };

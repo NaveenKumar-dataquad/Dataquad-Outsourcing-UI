@@ -4,15 +4,16 @@ import BASE_URL from "../config";
 
 
 
+
 // Initial state
 const initialState = {
   isAuthenticated: false,
   user: null,
-  roles: [], // Store roles as an array
+  roles: [], 
   logInTimeStamp: null,
   logoutTimestamp: null,
-  status: "idle", // For tracking async request status (idle, loading, succeeded, failed)
-  error: null, // To store error messages if any
+  status: "idle", 
+  error: null,
 };
 
 // Async thunk for logging in
@@ -45,26 +46,30 @@ export const loginAsync = createAsyncThunk(
     } catch (error) {
       // Handle errors from the API
       if (error.response) {
-        if (error.response.status === 403) {
-          return rejectWithValue("Your account is not authorized to log in.");
-        } else if (error.response.status === 400) {
-          return rejectWithValue("Invalid credentials or bad request.");
-        } else if(error.response.status === 201 && error.response.data?.success === false)  {
-          return rejectWithValue(
-            error.response.data?.error?.errorMessage || "User is already logged in."
-          );
-        }
-        else{
-          return rejectWithValue(
-            error.response.data?.error?.errorMessage || "An unexpected error occurred."
-          );
-        }
-      } else if (error.request) {
-        return rejectWithValue("Network error. Please try again later.");
-      } else {
-        return rejectWithValue("An unexpected error occurred.");
+          const { status, data } = error.response;  // Extract response data
+          const errorMessage = data?.error?.errorMessage || "An unexpected error occurred.";
+  
+          if (status === 403) {
+              return rejectWithValue("User is not active, please reach out to admin.");
+          } 
+          else if (status === 400) {
+              return rejectWithValue("Invalid credentials or bad request.");
+          } 
+          else if (status === 201 && data?.success === false) {
+              return rejectWithValue(errorMessage || "User is already logged in.");
+          } 
+          else {
+              return rejectWithValue(errorMessage);
+          }
+      } 
+      else if (error.request) {
+          return rejectWithValue("Network error. Please try again later.");
+      } 
+      else {
+          return rejectWithValue("An unexpected error occurred.");
       }
-    }
+  }
+  
   }
 );
 

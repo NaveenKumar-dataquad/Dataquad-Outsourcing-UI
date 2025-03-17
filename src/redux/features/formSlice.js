@@ -2,9 +2,9 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import BASE_URL from "../config";
 
-         
 
-export const submitFormData =createAsyncThunk(
+
+export const submitFormData = createAsyncThunk(
   "form/submit",
   async (formData, { rejectWithValue }) => {
     try {
@@ -175,7 +175,8 @@ const formSlice = createSlice({
         if (action.payload) {
           // Map specific error messages to fields
           if (action.payload.includes("userId already exists")) {
-            state.error.userId = "User ID already exists. Please choose a different one.";
+            state.error.userId =
+              "User ID already exists. Please choose a different one.";
           }
           if (action.payload.includes("email is already in use")) {
             state.error.email = "Email is already in use. Please try another.";
@@ -186,12 +187,14 @@ const formSlice = createSlice({
             console.log("general state ", action.payload);
           }
         } else {
-          state.error.general = "An unknown error occurred. Please try again later.";
+          state.error.general =
+            "An unknown error occurred. Please try again later.";
         }
       });
   },
 });
 
-export const { updateFormData, clearFormData, clearResponse } = formSlice.actions;
+export const { updateFormData, clearFormData, clearResponse } =
+  formSlice.actions;
 
 export default formSlice.reducer;

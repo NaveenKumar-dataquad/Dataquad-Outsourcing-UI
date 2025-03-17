@@ -87,26 +87,43 @@ const ForgotPasswordMain = ({showSignIn}) => {
   // Handle email submission
   const handleSubmitEmail = async (e) => {
     e.preventDefault();
+  
+    // Validate email before submitting
     if (!validateEmail(email)) {
       setValidationErrors({ email: "Please enter a valid email address" });
       return;
     }
+  
+    // Reset previous errors & success messages
     setValidationErrors({});
+    setError("");
+    setSuccess("");
+  
     try {
       setLoading(true);
+  
       const response = await axios.post(API_ENDPOINTS.SEND_OTP, { email });
-      if (response.data.status === "error") {
-        setError(response.data.message);
-      } else {
-        setSuccess("OTP sent successfully! Please check your email.");
-        setActiveStep(1);
+  
+      if (!response.data.success) {
+        // If API returns success: false, show the error message
+        setError(response.data.message || "User not found.");
+        return;
       }
+  
+      // Success case: OTP sent
+      setSuccess("OTP sent successfully! Please check your email.");
+      setActiveStep(1);
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      // Handle API or network errors
+      setError(
+        err.response?.data?.message || "An error occurred. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
+  
+  
 
   // Handle OTP verification
   const handleVerifyOtp = async (e) => {

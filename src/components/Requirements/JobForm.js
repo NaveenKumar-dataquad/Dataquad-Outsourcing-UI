@@ -21,7 +21,9 @@ import {
   CardContent,
   FormHelperText,
   OutlinedInput,
+  InputAdornment,
 } from "@mui/material";
+
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -32,11 +34,16 @@ import axios from "axios";
 import RecruiterMultiSelect from "../MuiComponents/RecruiterMultiSelect";
 import BASE_URL from "../../redux/config";
 import QualificationField from "../../utils/QualificationDropdown";
+import {
+  PersonOutline,
+  WorkOutline,
+  InfoOutlined,
+  LocationOn,
+} from "@mui/icons-material";
+import { useSelector ,useDispatch} from "react-redux";
+import { fetchEmployees } from "../../redux/features/employeesSlice";
 
 
-
-// Base URL for API calls
-// const BASE_URL = "http://192.168.0.246:8111"; // Replace with your actual API URL
 
 // Validation Schema
 const JobFormSchema = Yup.object().shape({
@@ -111,27 +118,49 @@ const JobFormSchema = Yup.object().shape({
 });
 
 // Custom Field Components
-const CustomTextField = ({ field, form: { touched, errors }, ...props }) => (
+// Simple reusable Formik TextField with optional icon
+const CustomTextField = ({
+  field,
+  form: { touched, errors },
+  icon,
+  ...props
+}) => (
   <TextField
     {...field}
     {...props}
     error={touched[field.name] && Boolean(errors[field.name])}
     helperText={touched[field.name] && errors[field.name]}
+    InputProps={{
+      startAdornment: icon && (
+        <InputAdornment position="start">{icon}</InputAdornment>
+      ),
+    }}
   />
 );
 
-const CustomSelect = ({
+// Select for jobType, jobMode, noticePeriod, etc.
+const CustomSelectField = ({
   field,
   form: { touched, errors },
+  label,
   children,
+  icon,
   ...props
 }) => (
   <FormControl
     fullWidth
     error={touched[field.name] && Boolean(errors[field.name])}
+    variant="outlined"
   >
-    <InputLabel>{props.label}</InputLabel>
-    <Select {...field} {...props}>
+    <InputLabel>{label}</InputLabel>
+    <Select
+      {...field}
+      label={label}
+      startAdornment={
+        icon && <InputAdornment position="start">{icon}</InputAdornment>
+      }
+      {...props}
+    >
       {children}
     </Select>
     {touched[field.name] && errors[field.name] && (
@@ -149,25 +178,52 @@ const JobForm = () => {
   const [fetchingEmployees, setFetchingEmployees] = useState(false);
   const [successResponse, setSuccessResponse] = useState(null);
   const [jobDescriptionType, setJobDescriptionType] = useState("text");
+  const [assignedByName, setAssignedByName] = useState("Loading...");
+const { employeesList, fetchStatus, fetchError, updateStatus, updateError } =
+    useSelector((state) => state.employees);
+  // Get current user ID from Redux store
+  const { roles, user } = useSelector((state) => state.auth);
+
+  const dispatch = useDispatch();
+ 
+  
+  // Fetch employees when component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, []);
+  
+  // Update assignedBy when employees data is loaded and user ID is available
+  useEffect(() => {
+    if (employeesList.length > 0 && user) {
+      const assignedUser = employeesList.find((emp) => emp.employeeId === user);
+      if (assignedUser) {
+        setAssignedByName(assignedUser.userName);
+      } else {
+        setAssignedByName("Unknown");
+        console.warn("Could not find user with ID:", user);
+      }
+    }
+  }, [employeesList, user]);
 
   // Filter recruiters
-  const recruiters = employees.filter(
-    (emp) => emp.roles === "EMPLOYEE" && emp.status === "ACTIVE"
+  const recruiters = employeesList.filter(
+    (emp) =>
+      (emp.roles === "EMPLOYEE" || emp.roles === "TEAMLEAD") &&
+      emp.status === "ACTIVE"
   );
 
-  // Function to fetch employees
-  const fetchEmployees = async () => {
-    setFetchingEmployees(true);
-    try {
-      const response = await axios.get(`${BASE_URL}/users/employees`);
-      setEmployees(response.data);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-      toast.error("Failed to fetch employees");
-    } finally {
-      setFetchingEmployees(false);
-    }
-  };
+  // const fetchEmployees = async () => {
+  //   setFetchingEmployees(true);
+  //   try {
+  //     const response = await axios.get(`/users/employee`);
+  //     setEmployees(response.data);
+  //   } catch (error) {
+  //     console.error("Error fetching employees:", error);
+  //     toast.error("Failed to fetch employees");
+  //   } finally {
+  //     setFetchingEmployees(false);
+  //   }
+  // };
 
   // Post job requirement function
   const postJobRequirement = async (formData) => {
@@ -182,9 +238,9 @@ const JobForm = () => {
           },
         }
       );
-  
+
       setSuccessResponse(response.data);
-  
+
       // Check if the response indicates success
       if (response.data.success) {
         toast.success(
@@ -212,7 +268,6 @@ const JobForm = () => {
       setLoading(false);
     }
   };
-  
 
   const initialValues = {
     jobTitle: "",
@@ -231,6 +286,7 @@ const JobForm = () => {
     noOfPositions: "",
     status: "In Progress",
     jobDescriptionFile: null,
+    assignedBy: assignedByName,
   };
 
   const textFieldStyle = {
@@ -280,6 +336,9 @@ const JobForm = () => {
         formData.append("jobDescriptionFile", values.jobDescriptionFile);
       }
 
+      // Use the updated assignedBy value from state
+      formData.append("assignedBy", assignedByName);
+
       const success = await postJobRequirement(formData);
 
       if (success) {
@@ -298,19 +357,18 @@ const JobForm = () => {
 
   return (
     <Paper
-      elevation={2}
       sx={{
-        maxWidth:'100%',
+        width: "90%",
         margin: "auto",
         mt: 3,
         mb: 3,
-        backgroundColor: "#f8f9fa",
       }}
     >
       <Formik
         initialValues={initialValues}
         validationSchema={JobFormSchema}
         onSubmit={handleSubmit}
+        enableReinitialize={true} // Important: re-initialize form when assignedByName changes
       >
         {({ values, resetForm, setFieldValue, errors, touched }) => (
           <Form>
@@ -348,30 +406,27 @@ const JobForm = () => {
                       <Field
                         name="jobTitle"
                         component={CustomTextField}
-                        fullWidth
                         label="Job Title"
-                        variant="outlined"
-                        sx={textFieldStyle}
+                        icon={<WorkOutline fontSize="small" />}
+                        fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="clientName"
                         component={CustomTextField}
-                        fullWidth
                         label="Client Name"
-                        variant="outlined"
-                        sx={textFieldStyle}
+                        icon={<PersonOutline fontSize="small" />}
+                        fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="location"
                         component={CustomTextField}
-                        fullWidth
                         label="Location"
-                        variant="outlined"
-                        sx={textFieldStyle}
+                        icon={<LocationOn fontSize="small" />}
+                        fullWidth
                       />
                     </Grid>
                   </Grid>
@@ -393,47 +448,52 @@ const JobForm = () => {
                       <Field
                         name="experienceRequired"
                         component={CustomTextField}
-                        fullWidth
                         type="number"
                         label="Experience Required (years)"
-                        variant="outlined"
-                        sx={textFieldStyle}
+                        icon={<WorkOutline fontSize="small" />}
+                        fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="relevantExperience"
                         component={CustomTextField}
-                        fullWidth
                         type="number"
                         label="Relevant Experience (years)"
-                        variant="outlined"
-                        sx={textFieldStyle}
+                        icon={<WorkOutline fontSize="small" />}
+                        fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
-                     <QualificationField />
+                      <QualificationField />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="noOfPositions"
                         component={CustomTextField}
-                        fullWidth
-                        type="text"
+                        type="number"
                         label="Number of Positions"
-                        variant="outlined"
-                        sx={textFieldStyle}
+                        icon={<InfoOutlined fontSize="small" />}
+                        fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="salaryPackage"
                         component={CustomTextField}
-                        fullWidth
-                        type="text"
+                        type="number"
                         label="Salary Package (LPA)"
-                        variant="outlined"
-                        sx={textFieldStyle}
+                        icon={<InfoOutlined fontSize="small" />}
+                        fullWidth
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <Field
+                        name="assignedBy"
+                        component={CustomTextField}
+                        label="Assigned By"
+                        fullWidth
+                        disabled // Prevent editing
                       />
                     </Grid>
                   </Grid>
@@ -454,27 +514,27 @@ const JobForm = () => {
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="jobType"
-                        component={CustomSelect}
+                        component={CustomSelectField}
                         label="Job Type"
+                        icon={<InfoOutlined fontSize="small" />}
                       >
-                        {["Full-time", "Part-time", "Contract"].map(
-                          (option) => (
-                            <MenuItem key={option} value={option}>
-                              {option}
-                            </MenuItem>
-                          )
-                        )}
+                        {["Full-time", "Part-time", "Contract"].map((opt) => (
+                          <MenuItem key={opt} value={opt}>
+                            {opt}
+                          </MenuItem>
+                        ))}
                       </Field>
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="jobMode"
-                        component={CustomSelect}
+                        component={CustomSelectField}
                         label="Job Mode"
+                        icon={<InfoOutlined fontSize="small" />}
                       >
-                        {["Remote", "On-site", "Hybrid"].map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
+                        {["Remote", "On-site", "Hybrid"].map((opt) => (
+                          <MenuItem key={opt} value={opt}>
+                            {opt}
                           </MenuItem>
                         ))}
                       </Field>
@@ -482,8 +542,9 @@ const JobForm = () => {
                     <Grid item xs={12} sm={6} md={4}>
                       <Field
                         name="noticePeriod"
-                        component={CustomSelect}
+                        component={CustomSelectField}
                         label="Notice Period"
+                        icon={<InfoOutlined fontSize="small" />}
                       >
                         {[
                           "Immediate",
@@ -491,9 +552,9 @@ const JobForm = () => {
                           "30 days",
                           "45 days",
                           "60 days",
-                        ].map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
+                        ].map((opt) => (
+                          <MenuItem key={opt} value={opt}>
+                            {opt}
                           </MenuItem>
                         ))}
                       </Field>

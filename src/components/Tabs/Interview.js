@@ -19,6 +19,11 @@ import {
   Tooltip,
   MenuItem,
   Grid,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
@@ -28,11 +33,21 @@ import BASE_URL from "../../redux/config";
 import SectionHeader from "../MuiComponents/SectionHeader";
 import { ListIcon } from "lucide-react";
 
+
 const INTERVIEW_LEVELS = {
   ALL: "all",
   INTERNAL: "Internal",
   EXTERNAL: "External",
 };
+const INTERVIEW_STATUSES = [
+  "SCHEDULED",
+  "SCREEN_SELECTED",
+  "CANCELLED",
+  "RESCHEDULED",
+  "REJECTED",
+  "SELECTED",
+  "PLACED",
+];
 
 const Interview = () => {
   const [data, setData] = useState([]);
@@ -44,6 +59,9 @@ const Interview = () => {
   const [editingInterview, setEditingInterview] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [interviewToDelete, setInterviewToDelete] = useState(null);
+  const [candidateDetailsOpen, setCandidateDetailsOpen] = useState(false);
+  const [candidateDetailsData, setCandidateDetailsData] = useState(null);
+  const [candidateDetailsLoading, setCandidateDetailsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -61,14 +79,14 @@ const Interview = () => {
       candidateName: "Candidate Name",
       candidateEmailId: "Candidate Email",
       candidateContactNo: "Contact Number",
+      clientName: "Client Name",
       interviewLevel: "Interview Level",
       interviewDateTime: "Interview Time",
       duration: "Duration",
-      zoomLink: "Meeting Link",
+      zoomLink: "Interview Link",
       interviewScheduledTimestamp: "Scheduled On",
       userEmail: "Recruiter Email",
       clientEmail: "Client Email",
-      clientName: "Client Name",
       interviewStatus: "Interview Status",
       scheduleInterview: "Schedule Interview",
       actions: "Actions",
@@ -92,6 +110,7 @@ const Interview = () => {
       "candidateId",
       "candidateEmailId",
       "candidateContactNo",
+      "clientName",
       "interviewLevel",
       "interviewDateTime",
       "duration",
@@ -99,7 +118,6 @@ const Interview = () => {
       "interviewScheduledTimestamp",
       "userEmail",
       "clientEmail",
-      "clientName",
       "interviewStatus",
       "scheduleInterview",
       "actions", // Ensuring Actions is always included
@@ -110,11 +128,56 @@ const Interview = () => {
         (key) =>
           key === "actions" || data.some((row) => row.hasOwnProperty(key))
       ) // Ensuring actions column is included
-      .map((key) => ({
-        key: key,
-        label: headerLabels[key] || key.replace(/([A-Z])/g, " $1").trim(),
-        ...(filterableColumns[key] ? { type: filterableColumns[key] } : {}), // Apply type only if defined
-      }));
+      .map((key) => {
+        // Make candidateId clickable
+        if (key === "candidateId") {
+          return {
+            key: key,
+            label: headerLabels[key] || key.replace(/([A-Z])/g, " $1").trim(),
+            render: (value, row) => (
+              <Button
+                color="primary"
+                variant="text"
+                onClick={() => handleCandidateIdClick(value)}
+                sx={{
+                  textDecoration: "underline",
+                  "&:hover": { backgroundColor: "transparent" },
+                }}
+              >
+                {value}
+              </Button>
+            ),
+          };
+        }
+        
+        return {
+          key: key,
+          label: headerLabels[key] || key.replace(/([A-Z])/g, " $1").trim(),
+          ...(filterableColumns[key] ? { type: filterableColumns[key] } : {}), // Apply type only if defined
+        };
+      });
+  };
+
+  const handleCandidateIdClick = async (candidateId) => {
+    setCandidateDetailsLoading(true);
+    setCandidateDetailsOpen(true);
+    
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/candidate/scheduledCandidates/${candidateId}`
+      );
+      
+      setCandidateDetailsData(response.data);
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to fetch candidate details. Please try again.",
+        severity: "error",
+      });
+      console.error("Error fetching candidate details:", error);
+    } finally {
+      setCandidateDetailsLoading(false);
+    }
   };
 
   const formatDateTime = (dateTime) => {
@@ -144,11 +207,8 @@ const Interview = () => {
       );
       const interviewData = response.data || [];
 
-      const scheduledInterviews = interviewData.filter(
-        (interview) => interview.interviewStatus.toUpperCase() === "SCHEDULED"
-      );
-
-      const processedData = scheduledInterviews.map((interview) => ({
+      // Modified to show all interviews instead of just scheduled ones
+      const processedData = interviewData.map((interview) => ({
         ...interview,
         interviewDateTime: formatDateTime(interview.interviewDateTime),
         interviewScheduledTimestamp: formatDateTime(
@@ -250,6 +310,7 @@ const Interview = () => {
       userEmail: editingInterview.userEmail,
       interviewLevel: editingInterview.interviewLevel,
       clientEmail: editingInterview.clientEmail,
+      interviewStatus: editingInterview.interviewStatus, // Include interviewStatus in payload
     };
 
     try {
@@ -338,6 +399,26 @@ const Interview = () => {
     );
   }
 
+  // Get status color based on interview status
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "COMPLETED":
+        return "#4CAF50"; // Green
+      case "SCHEDULED":
+        return "#2196F3"; // Blue
+      case "CANCELLED":
+        return "#F44336"; // Red
+      case "REJECTED":
+        return "#D32F2F"; // Dark Red
+      case "SELECTED":
+        return "#00C853"; // Bright Green
+      case "PLACED":
+        return "#6200EA"; // Purple
+      default:
+        return "#757575"; // Grey
+    }
+  };
+
   return (
     <Container
       maxWidth={false} // 1) No fixed max width
@@ -350,19 +431,156 @@ const Interview = () => {
         p: 2,
       }}
     >
-      
-        <SectionHeader
-          title="Interview Schedule"
-          totalCount={filteredData.length}
-          onRefresh={fetchInterviewDetails}
-          isRefreshing={loading}
-          icon={<ListIcon sx={{ color: "#FFF" }} />} // Optional: Custom icon
-        />
+      {/* <SectionHeader
+        title="Interview Schedule"
+        totalCount={filteredData.length}
+        onRefresh={fetchInterviewDetails}
+        isRefreshing={loading}
+        icon={<ListIcon sx={{ color: "#FFF" }} />} // Optional: Custom icon
+      /> */}
 
-        
-          <DataTable data={filteredData} columns={columns} pageLimit={5} />
-       
-     
+      <DataTable
+        data={filteredData}
+        columns={columns}
+        pageLimit={5}
+        title="Interviews"
+        onRefresh={fetchInterviewDetails}
+        isRefreshing={loading}
+      />
+
+      {/* Candidate Details Dialog */}
+      <Dialog
+        open={candidateDetailsOpen}
+        onClose={() => setCandidateDetailsOpen(false)}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: 3,
+            padding: 2,
+            minWidth: "500px",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            borderRadius: 2,
+            fontWeight: "bold",
+            fontSize: "1.25rem",
+            bgcolor: "#1976d2", // Blue background
+            color: "#FFF",
+            p: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: "bold", flexGrow: 1 }}>
+            Candidate Interview History
+          </Typography>
+
+          <IconButton
+            onClick={() => setCandidateDetailsOpen(false)}
+            sx={{
+              color: "#FFF",
+              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.2)" },
+              p: 1,
+            }}
+          >
+            <CloseIcon fontSize="medium" />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 3 }}>
+          {candidateDetailsLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : candidateDetailsData ? (
+            <Box>
+              {/* Basic Info */}
+              <Paper 
+                elevation={2} 
+                sx={{ 
+                  p: 2, 
+                  mb: 3, 
+                  borderRadius: 2,
+                  background: "linear-gradient(to right, #f5f7fa, #e4e7eb)"
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  {candidateDetailsData[0]?.candidateName || "Candidate"} - {candidateDetailsData[0]?.jobId || ""}
+                </Typography>
+                <Typography variant="subtitle1" gutterBottom>
+                  {candidateDetailsData[0]?.clientName || "Client"} 
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Rounds: {candidateDetailsData.find(item => item.totalInterviewRounds)?.totalInterviewRounds || "N/A"}
+                </Typography>
+              </Paper>
+
+              {/* Interview Timeline */}
+              <Typography variant="h6" gutterBottom sx={{ borderBottom: '1px solid #e0e0e0', pb: 1 }}>
+                Interview Timeline
+              </Typography>
+              
+              <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+                {candidateDetailsData
+                  .filter(item => !item.totalInterviewRounds) // Filter out the summary object
+                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)) // Sort by timestamp descending
+                  .map((interview, index) => (
+                    <React.Fragment key={index}>
+                      <ListItem 
+                        alignItems="flex-start"
+                        sx={{ 
+                          borderLeft: `4px solid ${getStatusColor(interview.interviewStatus)}`,
+                          pl: 2,
+                          mb: 1
+                        }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                              {interview.interviewStatus.replace(/_/g, " ")} - {interview.interviewLevel}
+                            </Typography>
+                          }
+                          secondary={
+                            <React.Fragment>
+                              <Typography
+                                component="span"
+                                variant="body2"
+                                color="text.primary"
+                                sx={{ display: 'block' }}
+                              >
+                                {interview.stage && interview.stage !== "N/A" ? `Stage: ${interview.stage}` : ""}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {new Date(interview.timestamp).toLocaleString()}
+                              </Typography>
+                            </React.Fragment>
+                          }
+                        />
+                      </ListItem>
+                      {index < candidateDetailsData.length - 2 && <Divider variant="inset" component="li" />}
+                    </React.Fragment>
+                  ))}
+              </List>
+            </Box>
+          ) : (
+            <Typography>No candidate details available</Typography>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button 
+            onClick={() => setCandidateDetailsOpen(false)}
+            variant="contained"
+            sx={{ borderRadius: 2 }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog
@@ -418,6 +636,7 @@ const Interview = () => {
                       "id",
                       "interviewDateTime",
                       "externalInterviewDetails",
+                      "interviewStatus", // Skip this since we'll add it separately below
                     ].includes(key)
                   ) {
                     return (
@@ -458,7 +677,6 @@ const Interview = () => {
                               "userId",
                               "interviewScheduledTimestamp",
                               "userEmail",
-                              "interviewStatus",
                             ].includes(key)}
                           />
                         )}
@@ -467,6 +685,29 @@ const Interview = () => {
                   }
                   return null;
                 })}
+
+                {/* Add Interview Status Dropdown */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label="Interview Status"
+                    value={editingInterview.interviewStatus || "SCHEDULED"}
+                    onChange={(e) =>
+                      setEditingInterview({
+                        ...editingInterview,
+                        interviewStatus: e.target.value,
+                      })
+                    }
+                    fullWidth
+                    sx={{ bgcolor: "white", borderRadius: 1 }}
+                  >
+                    {INTERVIEW_STATUSES.map((status) => (
+                      <MenuItem key={status} value={status}>
+                        {status.replace(/_/g, " ")}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
 
                 {/* Ensure interviewDateTime appears immediately after interviewScheduledTimestamp */}
                 {editingInterview.interviewScheduledTimestamp && (
@@ -544,7 +785,7 @@ const Interview = () => {
               ml: 2, // Adds spacing between buttons
             }}
           >
-            Reschedule Interview
+            Update Interview
           </Button>
         </DialogActions>
       </Dialog>

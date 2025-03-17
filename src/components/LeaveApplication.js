@@ -38,8 +38,6 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BASE_URL from "../redux/config";
 
-
-
 const LEAVE_TYPES = [
   {
     value: "Sick Leave",
@@ -318,7 +316,7 @@ const LeaveApplication = () => {
                   label="Start Date"
                   value={formData.startDate}
                   onChange={(date) => handleDateChange("startDate", date)}
-                  disablePast
+                  minDate={dayjs().subtract(1, "month")} // Allows selecting up to one month before today
                   slotProps={{
                     textField: {
                       fullWidth: true,

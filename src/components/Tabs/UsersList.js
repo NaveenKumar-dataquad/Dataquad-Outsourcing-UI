@@ -60,7 +60,7 @@ const UsersList = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const VALID_ROLES = ["SUPERADMIN", "EMPLOYEE", "ADMIN"];
+  const VALID_ROLES = ["SUPERADMIN", "EMPLOYEE", "ADMIN", "TEAMLEAD",'BDM'];
 
   // Validation regex patterns
   const personalEmailRegex = /^[a-z0-9._%+-]+@gmail\.com$/;
@@ -76,16 +76,20 @@ const UsersList = () => {
   });
 
   const renderActionsColumn = (employee) => {
-    const currentUser = user; // Logged-in user
-
-    // Check if the logged-in user is a Super Admin
+    const currentUser = user;
     const isSuperAdmin = roles.includes("SUPERADMIN");
+    const isTeamLead = roles.includes("TEAMLEAD");
 
-    // Disable Edit and Delete if the target user is a Super Admin but not the logged-in user
-    const isSameSuperAdmin =
-      isSuperAdmin &&
-      employee.roles === "SUPERADMIN" &&
-      employee.employeeId !== currentUser;
+    // Prevent editing/deleting SUPERADMIN unless logged-in user is also SUPERADMIN
+    const cannotEditSuperAdmin =
+      employee.roles.includes("SUPERADMIN") && isSuperAdmin;
+
+    // TEAMLEAD should not be able to edit or delete anyone
+    const isTeamLeadRestricted =
+      isTeamLead && employee.employeeId !== currentUser;
+
+    // Disable if user is another SUPERADMIN or TEAMLEAD trying to edit others
+    const isDisabled = cannotEditSuperAdmin || isTeamLeadRestricted;
 
     return (
       <Box display="flex" alignItems="center">
@@ -94,7 +98,7 @@ const UsersList = () => {
             <IconButton
               color="primary"
               onClick={() => handleOpenEditDialog(employee)}
-              disabled={isSameSuperAdmin} // Disable if conditions are met
+              disabled={isDisabled}
               sx={{ ml: 1 }}
             >
               <EditIcon />
@@ -107,7 +111,7 @@ const UsersList = () => {
             <IconButton
               color="error"
               onClick={() => handleDeleteEmployee(employee.employeeId)}
-              disabled={isSameSuperAdmin} // Disable if conditions are met
+              disabled={isDisabled}
               sx={{ ml: 1 }}
             >
               <DeleteIcon />
@@ -118,26 +122,28 @@ const UsersList = () => {
     );
   };
 
-  // Check if current user can edit specific employee
+  const fetchEmp = () => {
+    dispatch(fetchEmployees());
+  };
+
+  // ✅ Optimized canEditUser function
   const canEditUser = (employeeToEdit) => {
     const currentUser = user;
-    if (!roles.includes("SUPERADMIN")) {
-      return false;
+    const isSuperAdmin = roles.includes("SUPERADMIN");
+    const isTeamLead = roles.includes("TEAMLEAD");
+
+    // SUPERADMIN can edit any user except another SUPERADMIN
+    if (isSuperAdmin) {
+      return !employeeToEdit.roles.includes("SUPERADMIN");
     }
-    if (employeeToEdit.employeeId === currentUser) {
-      return true;
-    }
-    if (employeeToEdit.roles.includes("SUPERADMIN")) {
+
+    // TEAMLEAD cannot edit anyone except themselves
+    if (isTeamLead && employeeToEdit.employeeId !== currentUser) {
       return false;
     }
 
-    if (
-      employeeToEdit.roles.includes("SUPERADMIN") &&
-      employeeToEdit.employeeId !== currentUser
-    ) {
-      return false;
-    }
-    return true;
+    // Users can always edit their own details
+    return employeeToEdit.employeeId === currentUser;
   };
 
   useEffect(() => {
@@ -414,7 +420,7 @@ const UsersList = () => {
         p: 2,
       }}
     >
-      <SectionHeader
+      {/* <SectionHeader
         title="Employees List"
         totalCount={employeesList.length}
         onRefresh={fetchEmployees}
@@ -427,13 +433,7 @@ const UsersList = () => {
           borderRadius: 1,
           fontWeight: 600,
         }}
-      />
-
-      {fetchStatus === "loading" && (
-        <Box display="flex" justifyContent="center" p={3}>
-          <CircularProgress />
-        </Box>
-      )}
+      /> */}
 
       {fetchStatus === "failed" && (
         <Alert severity="error" sx={{ mt: 2 }}>
@@ -454,6 +454,9 @@ const UsersList = () => {
           data={employeesList}
           columns={columns}
           searchQuery={searchQuery}
+          title="User List"
+          onRefresh={fetchEmp}
+          isRefreshing={isRefreshing}
         />
       )}
 
@@ -514,7 +517,22 @@ const UsersList = () => {
                     if (key === "roles") {
                       return (
                         <Grid item xs={12} sm={6} key={key}>
-                          {renderRolesField(key)}
+                          <FormControl fullWidth>
+                            <InputLabel>Role</InputLabel>
+                            <Select
+                              name="roles"
+                              value={editFormData.roles || ""}
+                              onChange={handleInputChange}
+                              renderValue={(selected) => selected || ""}
+                              displayEmpty
+                            >
+                              <MenuItem value="ADMIN">ADMIN</MenuItem>
+                              <MenuItem value="EMPLOYEE">EMPLOYEE</MenuItem>
+                              <MenuItem value="BDM">BDM</MenuItem>
+                              <MenuItem value="SUPERADMIN">SUPERADMIN</MenuItem>
+                              <MenuItem value="TEAMLEAD">TEAMLEAD</MenuItem>
+                            </Select>
+                          </FormControl>
                         </Grid>
                       );
                     } else if (key === "status") {
