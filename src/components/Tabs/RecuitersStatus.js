@@ -90,13 +90,42 @@ const RecruiterDetailsView = ({ recruiterData }) => {
     { key: "contactNumber", label: "Contact" }
   ];
 
+  // Flatten submitted candidates from object to array
+  const flattenSubmittedCandidates = () => {
+    if (!recruiterData.submittedCandidates) return [];
+    return Object.entries(recruiterData.submittedCandidates).flatMap(
+      ([client, candidates]) => 
+        candidates.map(candidate => ({ 
+          ...candidate, 
+          clientName: client // Ensure clientName is set from the parent key
+        }))
+    );
+  };
+
+  // Flatten interviews data
+  const flattenInterviews = () => {
+    if (!recruiterData.scheduledInterviews) return [];
+    if (Array.isArray(recruiterData.scheduledInterviews)) {
+      return recruiterData.scheduledInterviews;
+    }
+    return Object.values(recruiterData.scheduledInterviews).flat();
+  };
+
+  // Flatten job details data
+  const flattenJobDetails = () => {
+    if (!recruiterData.jobDetails) return [];
+    return Object.values(recruiterData.jobDetails).flat();
+  };
+
+  // Flatten placements data
   const flattenPlacements = () => {
     if (!recruiterData.placements) return [];
-    return Object.entries(recruiterData.placements).flatMap(([client, placements]) => 
-      placements.map(placement => ({
-        ...placement,
-        clientName: client // Ensure clientName is set from the parent key
-      }))
+    return Object.entries(recruiterData.placements).flatMap(
+      ([client, placements]) => 
+        placements.map(placement => ({ 
+          ...placement, 
+          clientName: client 
+        }))
     );
   };
 
@@ -138,28 +167,28 @@ const RecruiterDetailsView = ({ recruiterData }) => {
           </Box>
         ) : (
           <>
-            {activeTab === 0 && recruiterData.jobDetails && (
+            {activeTab === 0 && (
               <ReusableTable
                 columns={jobColumns}
-                data={Object.values(recruiterData.jobDetails).flat()}
+                data={flattenJobDetails()}
               />
             )}
 
-            {activeTab === 1 && recruiterData.submittedCandidates && (
+            {activeTab === 1 && (
               <ReusableTable
                 columns={candidateColumns}
-                data={recruiterData.submittedCandidates}
+                data={flattenSubmittedCandidates()}
               />
             )}
 
-            {activeTab === 2 && recruiterData.scheduledInterviews && (
+            {activeTab === 2 && (
               <ReusableTable
                 columns={interviewColumns}
-                data={recruiterData.scheduledInterviews}
+                data={flattenInterviews()}
               />
             )}
 
-            {activeTab === 3 && recruiterData.placements && (
+            {activeTab === 3 && (
               <ReusableTable
                 columns={placementColumns}
                 data={flattenPlacements()}

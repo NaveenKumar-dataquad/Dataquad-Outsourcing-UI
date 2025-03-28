@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
   Box,
@@ -15,7 +15,7 @@ import DataTable from "../MuiComponents/DataTable";
 import ReusableTable from "../Bdm/DetailsBdm/ReusableTable";
 import BASE_URL from "../../redux/config";
 
-const TeamLeadDetailsView = ({ teamLeadData }) => {
+const TeamLeadDetailsView = ({ teamLeadData, onBack }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -25,83 +25,129 @@ const TeamLeadDetailsView = ({ teamLeadData }) => {
     setTimeout(() => setLoading(false), 300);
   };
 
-  const candidateColumns = [
-    { key: "fullName", label: "Candidate Name" },
-    { key: "candidateEmailId", label: "Email" },
-    { key: "contactNumber", label: "Contact Number" },
-    { key: "candidateId", label: "Candidate ID" },
-    { key: "jobTitle", label: "Job Title" },
-    { key: "jobId", label: "Job ID" },
-    { key: "clientName", label: "Client Name" },
-    { key: "skills", label: "Skills" },
-    { key: "qualification", label: "Qualification" },
-    {
-      key: "overallFeedback",
-      label: "Feedback",
-      render: (feedback) =>
-        feedback ? feedback.split(",").map((item, index) => <div key={index}>{item.trim()}</div>) : "—"
-    }
-  ];
-  
-  const interviewColumns = [
-    { key: "fullName", label: "Candidate Name" },
-    { key: "candidateEmailId", label: "Candidate Email" },
-    { key: "contactNumber", label: "Contact Number" },
-    { key: "jobId", label: "Job ID" },
-    { key: "jobTitle", label: "Job Title" },
-    { key: "clientName", label: "Client Name" },
-    { key: "skills", label: "Skills" },
-    { key: "qualification", label: "Qualification" },
-    { key: "interviewStatus", label: "Interview Status" },
-    { key: "interviewLevel", label: "Interview Level" },
-    { 
-      key: "interviewDateTime", 
-      label: "Interview Date",
-      render: (value) => value ? new Date(value).toISOString().split('T')[0] : '—' 
-    }
-  ];
-  
-  const jobColumns = [
-    { key: "jobId", label: "Job ID" },
-    { key: "jobTitle", label: "Job Title" },
-    { key: "clientName", label: "Client" },
-    { key: "jobType", label: "Job Type" },
-    { key: "jobMode", label: "Job Mode" },
-    { key: "noOfPositions", label: "No. of Positions" },
-    { key: "qualification", label: "Qualification" },
-    { 
-      key: "postedDate", 
-      label: "Posted Date",
-      render: (value) => value ? new Date(value).toISOString().split('T')[0] : '—' 
-    },
-    { key: "assignedBy", label: "Assigned By" },
-    { key: "status", label: "Status" }
-  ];
+  const candidateColumns = useMemo(
+    () => [
+      { key: "fullName", label: "Candidate Name" },
+      { key: "candidateEmailId", label: "Email" },
+      { key: "contactNumber", label: "Contact Number" },
+      { key: "candidateId", label: "Candidate ID" },
+      { key: "jobTitle", label: "Job Title" },
+      { key: "jobId", label: "Job ID" },
+      { key: "clientName", label: "Client Name" },
+      { key: "skills", label: "Skills" },
+      { key: "qualification", label: "Qualification" },
+      {
+        key: "overallFeedback",
+        label: "Feedback",
+        render: (feedback) =>
+          feedback
+            ? feedback
+                .split(",")
+                .map((item, index) => <div key={index}>{item.trim()}</div>)
+            : "—",
+      },
+    ],
+    []
+  );
 
-  const placementColumns = [
-    { key: "fullName", label: "Candidate Name" },
-    { key: "clientName", label: "Client" },
-    { key: "jobTitle", label: "Job Title" },
-    { key: "jobId", label: "Job ID" },
-    { key: "qualification", label: "Qualification" },
-    { key: "skills", label: "Skills" },
-    { key: "interviewDateTime", label: "Placement Date" },
-    { key: "candidateEmailId", label: "Email" },
-    { key: "contactNumber", label: "Contact" }
-  ];
+  const interviewColumns = useMemo(
+    () => [
+      { key: "fullName", label: "Candidate Name" },
+      { key: "candidateEmailId", label: "Candidate Email" },
+      { key: "contactNumber", label: "Contact Number" },
+      { key: "jobId", label: "Job ID" },
+      { key: "jobTitle", label: "Job Title" },
+      { key: "clientName", label: "Client Name" },
+      { key: "skills", label: "Skills" },
+      { key: "qualification", label: "Qualification" },
+      { key: "interviewStatus", label: "Interview Status" },
+      { key: "interviewLevel", label: "Interview Level" },
+      {
+        key: "interviewDateTime",
+        label: "Interview Date",
+        render: (value) => (value ? new Date(value).toISOString().split("T")[0] : "—"),
+      },
+    ],
+    []
+  );
 
-  const flattenPlacements = () => {
-    if (!teamLeadData.placements) return [];
-    return Object.entries(teamLeadData.placements).flatMap(([client, placements]) => 
-      placements.map(placement => ({
+  const jobColumns = useMemo(
+    () => [
+      { key: "jobId", label: "Job ID" },
+      { key: "jobTitle", label: "Job Title" },
+      { key: "clientName", label: "Client" },
+      { key: "jobType", label: "Job Type" },
+      { key: "jobMode", label: "Job Mode" },
+      { key: "noOfPositions", label: "No. of Positions" },
+      { key: "qualification", label: "Qualification" },
+      {
+        key: "postedDate",
+        label: "Posted Date",
+        render: (value) => (value ? new Date(value).toISOString().split("T")[0] : "—"),
+      },
+      { key: "assignedBy", label: "Assigned By" },
+      { key: "status", label: "Status" },
+    ],
+    []
+  );
+
+  const placementColumns = useMemo(
+    () => [
+      { key: "fullName", label: "Candidate Name" },
+      { key: "clientName", label: "Client" },
+      { key: "jobTitle", label: "Job Title" },
+      { key: "jobId", label: "Job ID" },
+      { key: "qualification", label: "Qualification" },
+      { key: "skills", label: "Skills" },
+      { key: "interviewDateTime", label: "Placement Date" },
+      { key: "candidateEmailId", label: "Email" },
+      { key: "contactNumber", label: "Contact" },
+    ],
+    []
+  );
+
+  const flattenedPlacements = useMemo(() => {
+    if (!teamLeadData || !teamLeadData.placements) return [];
+    return Object.entries(teamLeadData.placements).flatMap(([client, placements]) =>
+      placements.map((placement) => ({
         ...placement,
-        clientName: client
+        clientName: client,
       }))
     );
-  };
+  }, [teamLeadData]);
+
+  const jobData = useMemo(() => {
+    if (!teamLeadData || !teamLeadData.jobDetails) return [];
+    return Object.values(teamLeadData.jobDetails).flat();
+  }, [teamLeadData]);
+
+  const submittedCandidatesData = useMemo(() => {
+    if (!teamLeadData || !teamLeadData.submittedCandidates) return [];
+    return Object.entries(teamLeadData.submittedCandidates).flatMap(([client, candidates]) =>
+      candidates.map((candidate) => ({
+        ...candidate,
+        clientName: client,
+      }))
+    );
+  }, [teamLeadData]);
+
+  const scheduledInterviewsData = useMemo(() => {
+    if (!teamLeadData || !teamLeadData.scheduledInterviews) return [];
+    return Object.entries(teamLeadData.scheduledInterviews).flatMap(([client, interviews]) =>
+      interviews.map((interview) => ({
+        ...interview,
+        clientName: client,
+      }))
+    );
+  }, [teamLeadData]);
 
   return (
     <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} sx={{ gap: 2 }}>
+        <Button variant="outlined" size="small" startIcon={<ArrowBack />} onClick={onBack} sx={{ minWidth: 140 }}>
+          Back
+        </Button>
+      </Box>
       <Tabs
         value={activeTab}
         onChange={handleTabChange}
@@ -128,42 +174,25 @@ const TeamLeadDetailsView = ({ teamLeadData }) => {
 
       <Box p={3}>
         {loading ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            height="50vh"
-          >
+          <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
             <CircularProgress color="primary" />
           </Box>
         ) : (
           <>
-            {activeTab === 0 && teamLeadData.jobDetails && (
-              <ReusableTable
-                columns={jobColumns}
-                data={Object.values(teamLeadData.jobDetails).flat()}
-              />
+            {activeTab === 0 && teamLeadData?.jobDetails && (
+              <ReusableTable columns={jobColumns} data={jobData} />
             )}
 
-            {activeTab === 1 && teamLeadData.submittedCandidates && (
-              <ReusableTable
-                columns={candidateColumns}
-                data={teamLeadData.submittedCandidates}
-              />
+            {activeTab === 1 && teamLeadData?.submittedCandidates && (
+              <ReusableTable columns={candidateColumns} data={submittedCandidatesData} />
             )}
 
-            {activeTab === 2 && teamLeadData.scheduledInterviews && (
-              <ReusableTable
-                columns={interviewColumns}
-                data={teamLeadData.scheduledInterviews}
-              />
+            {activeTab === 2 && teamLeadData?.scheduledInterviews && (
+              <ReusableTable columns={interviewColumns} data={scheduledInterviewsData} />
             )}
 
-            {activeTab === 3 && teamLeadData.placements && (
-              <ReusableTable
-                columns={placementColumns}
-                data={flattenPlacements()}
-              />
+            {activeTab === 3 && teamLeadData?.placements && (
+              <ReusableTable columns={placementColumns} data={flattenedPlacements} />
             )}
           </>
         )}
@@ -180,12 +209,14 @@ const TeamLeadsStatus = () => {
   const [selectedTeamLead, setSelectedTeamLead] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
+
+
   const fetchUserSpecificData = async () => {
     setIsRefreshing(true);
     try {
+      // In a real scenario, replace this with an actual API call
       const response = await axios.get(`${BASE_URL}/requirements/stats`);
-      // Filter for TEAMLEAD role only
-      const teamLeads = response.data.filter(user => user.role === "TEAMLEAD");
+      const teamLeads = response.data.filter((user) => user.role === "TEAMLEAD");
       setTeamLeadsData(teamLeads);
       setError(null);
     } catch (err) {
@@ -203,9 +234,7 @@ const TeamLeadsStatus = () => {
   const handleEmployeeIdClick = async (employeeId) => {
     setDetailLoading(true);
     try {
-      const response = await axios.get(
-        `${BASE_URL}/requirements/list/${employeeId}`
-      );
+      const response = await axios.get(`${BASE_URL}/requirements/list/${employeeId}`);
       setSelectedTeamLead(response.data);
     } catch (error) {
       console.error("Error fetching team lead details:", error);
@@ -213,32 +242,36 @@ const TeamLeadsStatus = () => {
       setDetailLoading(false);
     }
   };
+  
 
-  const mainTableColumns = [
-    {
-      key: "employeeId",
-      label: "Employee ID",
-      render: (row) => (
-        <Link
-          component="button"
-          variant="body2"
-          onClick={() => handleEmployeeIdClick(row.employeeId)}
-          sx={{
-            textDecoration: "underline",
-            cursor: "pointer",
-            "&:hover": { textDecoration: "underline" },
-          }}
-        >
-          {row.employeeId}
-        </Link>
-      ),
-    },
-    { key: "employeeName", label: "Name" },
-    { key: "employeeEmail", label: "Email" },
-    { key: "numberOfSubmissions", label: "Submissions" },
-    { key: "numberOfInterviews", label: "Interviews" },
-    { key: "numberOfPlacements", label: "Placements" }
-  ];
+  const mainTableColumns = useMemo(
+    () => [
+      {
+        key: "employeeId",
+        label: "Employee ID",
+        render: (row) => (
+          <Link
+            component="button"
+            variant="body2"
+            onClick={() => handleEmployeeIdClick(row.employeeId)}
+            sx={{
+              textDecoration: "underline",
+              cursor: "pointer",
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
+            {row.employeeId}
+          </Link>
+        ),
+      },
+      { key: "employeeName", label: "Name" },
+      { key: "employeeEmail", label: "Email" },
+      { key: "numberOfSubmissions", label: "Submissions" },
+      { key: "numberOfInterviews", label: "Interviews" },
+      { key: "numberOfPlacements", label: "Placements" },
+    ],
+    [handleEmployeeIdClick]
+  );
 
   return (
     <Box>
@@ -299,25 +332,10 @@ const TeamLeadsStatus = () => {
 
           {selectedTeamLead && !detailLoading && (
             <Grid item xs={12}>
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={2}
-                sx={{ gap: 2 }}
-              >
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<ArrowBack />}
-                  onClick={() => setSelectedTeamLead(null)}
-                  sx={{ minWidth: 140 }}
-                >
-                  Back to Team Leads
-                </Button>
-              </Box>
-
-              <TeamLeadDetailsView teamLeadData={selectedTeamLead} />
+              <TeamLeadDetailsView
+                teamLeadData={selectedTeamLead}
+                onBack={() => setSelectedTeamLead(null)}
+              />
             </Grid>
           )}
         </Grid>

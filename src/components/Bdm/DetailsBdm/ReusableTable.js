@@ -14,7 +14,10 @@ const ReusableTable = ({ columns, data }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  if (!data || data.length === 0) {
+  // Ensure data is always an array
+  const tableData = Array.isArray(data) ? data : [];
+
+  if (tableData.length === 0) {
     return <p style={{ textAlign: 'center', padding: '10px', color: '#666' }}>No data available</p>;
   }
 
@@ -43,10 +46,10 @@ const ReusableTable = ({ columns, data }) => {
                     color: 'white',
                     fontWeight: 'bold',
                     textAlign: 'center',
-                    borderBottom: '2px solid #ddd', // Proper border for headers
-                    borderRight: '1px solid #ccc', // Column separation
+                    borderBottom: '2px solid #ddd',
+                    borderRight: '1px solid #ccc',
                     padding: '12px',
-                    '&:last-child': { borderRight: 'none' }, // Remove border from last column
+                    '&:last-child': { borderRight: 'none' },
                   }}
                 >
                   {col.label}
@@ -55,31 +58,31 @@ const ReusableTable = ({ columns, data }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Pagination logic
+            {tableData
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row, rowIndex) => (
                 <TableRow
                   key={rowIndex}
                   sx={{
                     '&:nth-of-type(even)': { backgroundColor: '#F8F9FC' },
                     '&:hover': { backgroundColor: '#E7ECFF' },
-                    borderBottom: '2px solid #ddd', // Proper row separation
+                    borderBottom: '2px solid #ddd',
                   }}
                 >
                   {columns.map((col, colIndex) => (
                     <TableCell
                       key={colIndex}
                       sx={{
-                        borderBottom: '1px solid #ccc', // Row separation
-                        borderRight: '1px solid #ccc', // Column separation
+                        borderBottom: '1px solid #ccc',
+                        borderRight: '1px solid #ccc',
                         '&:last-child': { borderRight: 'none' },
                         padding: '12px',
                         minHeight: '48px',
                         fontSize: '0.95rem',
                         textAlign: 'center',
                         color: '#333',
-                        wordBreak: 'break-word', // Breaks long words
-                        whiteSpace: 'normal', // Allows text wrapping
+                        wordBreak: 'break-word',
+                        whiteSpace: 'normal',
                       }}
                     >
                       {col.render ? col.render(row[col.key], row) : row[col.key] || '—'}
@@ -91,9 +94,9 @@ const ReusableTable = ({ columns, data }) => {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[ 10, 15, 20]}
+        rowsPerPageOptions={[10, 15, 20]}
         component="div"
-        count={data.length}
+        count={tableData.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
