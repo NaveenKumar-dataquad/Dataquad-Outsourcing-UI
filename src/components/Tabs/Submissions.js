@@ -37,9 +37,6 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import SectionHeader from "../MuiComponents/SectionHeader";
 import BASE_URL from "../../redux/config";
 
-
-
-
 const Submissions = () => {
   const [data, setData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -88,6 +85,7 @@ const Submissions = () => {
       resumeFilePath: "Resume",
       scheduleInterview: "Schedule Interview",
       actions: "Actions",
+      addToBench: "To Bench", // Add new column
     };
 
     // Define which columns should have filters (select or text)
@@ -132,6 +130,7 @@ const Submissions = () => {
       "jobId",
       "resumeFilePath",
       "scheduleInterview",
+      "addToBench", // Add new column
       "actions",
     ];
 
@@ -147,7 +146,7 @@ const Submissions = () => {
   const fetchCurrentResume = async (candidateId) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/candidate/download-resume/${candidateId}`,
+        `${BASE_URL}/candidate/download\-resume/${candidateId}`,
         {
           responseType: "blob",
           headers: { "Content-Type": "application/json" },
@@ -178,7 +177,7 @@ const Submissions = () => {
   const downloadResume = async (candidateId) => {
     try {
       setLoading(true);
-      const resumeUrl = `${BASE_URL}/candidate/download-resume/${candidateId}`;
+      const resumeUrl = `${BASE_URL}/candidate/download\-resume/${candidateId}`;
 
       console.log("Downloading Resume from:", resumeUrl);
 
@@ -243,7 +242,7 @@ const Submissions = () => {
         ...item,
         resumeFilePath: item.candidateId ? (
           <a
-            href={`${BASE_URL}/candidate/download-resume/${item.candidateId}`}
+            href={`${BASE_URL}/candidate/download\-resume/${item.candidateId}`}
             onClick={(e) => {
               e.preventDefault();
               downloadResume(item.candidateId);
@@ -310,6 +309,27 @@ const Submissions = () => {
             </Tooltip>
           </Box>
         ),
+        addToBench: (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleAddToBench(item);
+            }}
+            style={{
+              display: "inline-block",
+              padding: "6px 12px",
+              backgroundColor: "#2A4DBD",
+              color: "#FFFFFF",
+              textDecoration: "none",
+              borderRadius: "8px",
+              whiteSpace: "nowrap",
+              fontSize: "14px",
+            }}
+          >
+            Add to Bench
+          </a>
+        ),
       }));
 
       setData(processedData);
@@ -372,37 +392,44 @@ const Submissions = () => {
   const updateCandidate = async () => {
     try {
       setLoading(true);
-      const { candidateId, resumeFile, emailId, ...otherFields } = editingCandidate; // Extract emailId
-  
+      const { candidateId, resumeFile, emailId, ...otherFields } =
+        editingCandidate; // Extract emailId
+
       const formData = new FormData();
-  
+
       const numericFields = {
         totalExperience: parseFloat(otherFields.totalExperience),
         relevantExperience: parseFloat(otherFields.relevantExperience),
-        requiredTechnologiesRating: parseFloat(otherFields.requiredTechnologiesRating),
+        requiredTechnologiesRating: parseFloat(
+          otherFields.requiredTechnologiesRating
+        ),
       };
-  
+
       Object.entries(numericFields).forEach(([key, value]) => {
         if (!isNaN(value)) {
           formData.append(key, value);
         }
       });
-  
+
       Object.entries(otherFields).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && !Object.keys(numericFields).includes(key)) {
+        if (
+          value !== null &&
+          value !== undefined &&
+          !Object.keys(numericFields).includes(key)
+        ) {
           formData.append(key, value.toString());
         }
       });
-  
+
       // ✅ Send `candidateEmailId` instead of `emailId`
       if (emailId) {
         formData.append("candidateEmailId", emailId);
       }
-  
+
       if (resumeFile instanceof File) {
         formData.append("resumeFile", resumeFile);
       }
-  
+
       const response = await axios.put(
         `${BASE_URL}/candidate/candidatesubmissions/${candidateId}`,
         formData,
@@ -412,21 +439,21 @@ const Submissions = () => {
           },
         }
       );
-  
+
       const { message, payload } = response.data;
-  
+
       const successMessage = `${message}
-      Candidate ID: ${payload?.candidateId}
-      Employee ID: ${payload?.employeeId}
-      Job ID: ${payload?.jobId}
-      Candidate Email ID: ${payload?.candidateEmailId}`; // ✅ Updated success message
-  
+    Candidate ID: ${payload?.candidateId}
+    Employee ID: ${payload?.employeeId}
+    Job ID: ${payload?.jobId}
+    Candidate Email ID: ${payload?.candidateEmailId}`; // ✅ Updated success message
+
       setSnackbar({
         open: true,
         message: successMessage,
         severity: "success",
       });
-  
+
       handleCloseEditDialog();
       fetchSubmissionData();
     } catch (error) {
@@ -441,7 +468,6 @@ const Submissions = () => {
       setLoading(false);
     }
   };
-  
 
   const deleteCandidate = async () => {
     try {
@@ -467,6 +493,54 @@ const Submissions = () => {
     }
   };
 
+  const handleAddToBench = async (candidate) => {
+    console.log("Candidate Data:", candidate);
+    
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      
+      formData.append("fullName", candidate.fullName);
+      formData.append("email", candidate.emailId);
+      formData.append("contactNumber", candidate.contactNumber);
+      formData.append("relevantExperience", candidate.relevantExperience);
+      formData.append("totalExperience", candidate.totalExperience);
+      
+      // ✅ Convert skills string to an array and send as JSON string
+      const skillsArray = candidate.skills ? candidate.skills.split(",").map(skill => skill.trim()) : [];
+      formData.append("skills", JSON.stringify(skillsArray)); // 🔥 Send as JSON string
+  
+      formData.append("linkedin", candidate.linkedin || ""); // Handle optional fields
+      formData.append("referredBy", candidate.userEmail);
+  
+      // ✅ Fetch and append resume file if available
+      const resumeFile = await fetchCurrentResume(candidate.candidateId);
+      if (resumeFile) {
+        formData.append("resumeFiles", resumeFile);
+      }
+  
+      await axios.post(`${BASE_URL}/candidates/bench/save`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
+      setSnackbar({
+        open: true,
+        message: "Candidate moved to bench successfully!",
+        severity: "success",
+      });
+    } catch (error) {
+      console.error("Error moving to bench:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to move candidate to bench. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
   if (!userId) {
     return (
       <Box
@@ -482,14 +556,6 @@ const Submissions = () => {
     );
   }
 
-  // if (loading) {
-  //   return (
-  //     <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-  //       <CircularProgress />
-  //     </Box>
-  //   );
-  // }
-
   return (
     <Container
       maxWidth={false} // 1) No fixed max width
@@ -502,18 +568,14 @@ const Submissions = () => {
         p: 2,
       }}
     >
-      {/* <SectionHeader
-        title="Candidate Submissions"
-        totalCount={data.length}
+      <DataTable
+        data={data}
+        columns={columns}
+        pageLimit={10}
+        title="Submissions"
         onRefresh={fetchSubmissionData}
         isRefreshing={loading}
-        icon={<GroupsIcon sx={{ color: "#1B5E20" }} />}
-      /> */}
-
-      
-        <DataTable data={data} columns={columns} pageLimit={10} title="Submissions" onRefresh={fetchSubmissionData}
-                isRefreshing={loading}/>
-     
+      />
 
       {/* Edit Dialog */}
       <Dialog
@@ -573,6 +635,7 @@ const Submissions = () => {
                       "resumeFile",
                       "scheduleInterview",
                       "actions",
+                      "addToBench",
                     ].includes(key)
                   )
                     return null;

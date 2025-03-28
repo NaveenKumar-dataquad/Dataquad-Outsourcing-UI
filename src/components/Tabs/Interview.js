@@ -139,25 +139,17 @@ const Interview = () => {
 
   const fetchInterviewDetails = async () => {
     if (!userId) return;
-
+  
     try {
       setLoading(true);
-      const response = await axios.get(
-        `${BASE_URL}/candidate/interviews/${userId}`
-      );
+      const response = await axios.get(`${BASE_URL}/candidate/interviews/${userId}`);
       const interviewData = response.data || [];
-
-      const scheduledInterviews = interviewData.filter(
-        (interview) => interview.interviewStatus.toUpperCase() === "SCHEDULED"
-      );
-
-      const processedData = scheduledInterviews.map((interview) => ({
+  
+      const processedData = interviewData.map((interview) => ({
         ...interview,
-        interviewDateTime: formatDateTime(interview.interviewDateTime),
-        interviewScheduledTimestamp: formatDateTime(
-          interview.interviewScheduledTimestamp
-        ),
-        duration: interview.duration ? `${interview.duration} minutes` : "",
+        interviewDateTime: interview.interviewDateTime ? formatDateTime(interview.interviewDateTime) : "N/A",
+        interviewScheduledTimestamp: interview.interviewScheduledTimestamp ? formatDateTime(interview.interviewScheduledTimestamp) : "N/A",
+        duration: interview.duration ? `${interview.duration} minutes` : "N/A",
         zoomLink: interview.zoomLink ? (
           <Button
             variant="contained"
@@ -165,27 +157,18 @@ const Interview = () => {
             href={interview.zoomLink}
             target="_blank"
             rel="noopener noreferrer"
-            sx={{
-              textTransform: "none",
-              minWidth: "100px",
-              fontSize: "0.875rem",
-            }}
+            sx={{ textTransform: "none", minWidth: "100px", fontSize: "0.875rem" }}
           >
             Join Meeting
           </Button>
-        ) : (
-          ""
-        ),
+        ) : "N/A",
         actions: (
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Tooltip title="Edit">
               <IconButton
                 color="primary"
                 onClick={() => handleEditInterview(interview)}
-                sx={{
-                  borderRadius: "8px",
-                  "&:hover": { backgroundColor: "#1B3A8C1A" },
-                }}
+                sx={{ borderRadius: "8px", "&:hover": { backgroundColor: "#1B3A8C1A" } }}
               >
                 <EditIcon />
               </IconButton>
@@ -194,10 +177,7 @@ const Interview = () => {
               <IconButton
                 color="error"
                 onClick={() => handleDeleteClick(interview)}
-                sx={{
-                  borderRadius: "8px",
-                  "&:hover": { backgroundColor: "#B71C1C1A" },
-                }}
+                sx={{ borderRadius: "8px", "&:hover": { backgroundColor: "#B71C1C1A" } }}
               >
                 <DeleteIcon />
               </IconButton>
@@ -205,13 +185,15 @@ const Interview = () => {
           </Box>
         ),
       }));
-
+  
       setData(processedData);
+  
       if (processedData.length > 0) {
         const generatedColumns = generateColumns(processedData);
         setColumns(generatedColumns);
       }
-      applyFilter(processedData, filterLevel);
+  
+      applyFilter(processedData, filterLevel); // Apply existing filters if any
     } catch (error) {
       setSnackbar({
         open: true,
@@ -222,6 +204,7 @@ const Interview = () => {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchInterviewDetails();

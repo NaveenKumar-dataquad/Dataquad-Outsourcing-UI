@@ -21,7 +21,7 @@ import SendIcon from "@mui/icons-material/Send";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import GroupWorkIcon from "@mui/icons-material/GroupWork";
 import DescriptionIcon from "@mui/icons-material/Description";
-import AlignVerticalBottomIcon from '@mui/icons-material/AlignVerticalBottom';
+import AlignVerticalBottomIcon from "@mui/icons-material/AlignVerticalBottom";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 
 // Import components
@@ -46,9 +46,7 @@ import RecuitersStatus from "../components/Tabs/RecuitersStatus";
 import BenchForm from "../components/Bench/BenchForm";
 import BenchList from "../components/Bench/BenchList";
 import { ListIcon } from "lucide-react";
-
-
-
+import TeamLeadsStatus from "../components/Tabs/TeamLeadsStatus";
 
 const TABS_BY_ROLE = {
   EMPLOYEE: [
@@ -97,8 +95,28 @@ const TABS_BY_ROLE = {
       icon: <AccessTimeIcon />,
     },
   ],
-  
+
   ADMIN: [
+    {
+      label: "Bench",
+      value: "BENCH",
+      icon: <HourglassEmptyIcon />,
+      isParent: true,
+      children: [
+        // {
+        //   label: "Bench Form",
+        //   value: "BENCH_FORM",
+        //   component: <BenchForm />,
+        //   icon: <NoteAddIcon />,
+        // },
+        {
+          label: "Bench List",
+          value: "BENCH_LIST",
+          component: <BenchList />,
+          icon: <ListIcon />,
+        },
+      ],
+    },
     {
       label: "Timesheet",
       value: "TIMESHEET",
@@ -129,109 +147,86 @@ const TABS_BY_ROLE = {
       label: "Dashboard",
       value: "DASHBOARD",
       component: <AdminDashboard />,
-      icon: <DashboardIcon />,
     },
     {
-      label: "Requirements ",
+      label: "Requirements",
       value: "REQ_MANAGEMENT",
-      icon: <AssignmentIcon />,
       isParent: true,
       children: [
         {
           label: "Requirements",
           value: "REQUIREMENTS",
           component: <Requirements />,
-          icon: <AssignmentIcon />,
         },
-        {
-          label: "Job Form",
-          value: "JOB_FORM",
-          component: <JobForm />,
-          icon: <AddCircleOutlineIcon />,
-        },
+        { label: "Job Form", value: "JOB_FORM", component: <JobForm /> },
         {
           label: "Submissions",
           value: "ALLSUBMISSIONS",
           component: <AllSubmissions />,
-          icon: <SendIcon />,
         },
         {
           label: "Interviews",
           value: "ALLINTERVIEWS",
           component: <AllInterviews />,
-          icon: <InterpreterModeIcon />,
-        },
-        {
-          label: "RecuitersStatus",
-          value: "RECUITERS-STATUS",
-          component: <RecuitersStatus />,
-          icon: <AlignVerticalBottomIcon />,
         },
       ],
     },
     {
       label: "User Management",
       value: "USER_MANAGEMENT",
-      icon: <PeopleIcon />,
+      isParent: true,
+      children: [
+        { label: "Users", value: "USERS", component: <UsersList /> },
+        { label: "Add User", value: "ADDUSER", component: <AddUser /> },
+        { label: "Bench", value: "BENCH", component: <Bench /> },
+      ],
+    },
+    {
+      label: "BDM Management",
+      value: "BDM_MANAGEMENT",
       isParent: true,
       children: [
         {
-          label: "Users",
-          value: "USERS",
-          component: <UsersList />,
-          icon: <PeopleIcon />,
+          label: "Onboard Client",
+          value: "ONBOARDCLIENT",
+          component: <ClientForm />,
+        },
+        { label: "Client List", value: "CLIENTLIST", component: <Clients /> },
+      ],
+    },
+    {
+      label: "Team Metrics",
+      value: "RECRUITMENT_MANAGEMENT",
+      isParent: true,
+      children: [
+        { label: "BDM", value: "BDM_USERS", component: <BdmUsers /> },
+        {
+          label: "Teamlead",
+          value: "TEAMLEAD_STATUS",
+          component: <TeamLeadsStatus />,
         },
         {
-          label: "Add User",
-          value: "ADDUSER",
-          component: <AddUser />,
-          icon: <PersonAddIcon />,
-        },
-        {
-          label: "Bench",
-          value: "BENCH",
-          component: <Bench />,
-          icon: <HourglassEmptyIcon />,
+          label: "Recuiters",
+          value: "RECRUITER_STATUS",
+          component: <RecuitersStatus />,
         },
       ],
     },
-    
-
     {
-      label: "BDM",
-      value: "CLIENT_MANAGEMENT",
-      icon: <BusinessIcon />,
+      label: "Bench",
+      value: "BENCH",
       isParent: true,
       children: [
-        {
-          label: "OnBoardClient",
-          value: "ONBOARDCLIENT",
-          component: <ClientForm />,
-          icon: <BusinessIcon />,
-        },
-        {
-          label: "Client List",
-          value: "CLIENTLIST",
-          component: <Clients />,
-          icon: <FormatListBulletedIcon />,
-        },
-        {
-          label: "BDM List",
-          value: "BDMLIST",
-          component: <BdmUsers />,
-          icon: <SupervisorAccountIcon />,
-        },
+        { label: "Bench List", value: "BENCH_LIST", component: <BenchList /> },
       ],
     },
     {
       label: "Timesheet",
       value: "TIMESHEET",
       component: <EmployeeTimesheet />,
-      icon: <AccessTimeIcon />,
     },
-
-
   ],
+
   TEAMLEAD: [
     {
       label: "Requirements",
@@ -282,6 +277,26 @@ const TABS_BY_ROLE = {
           value: "INTERVIEW",
           component: <Interview />,
           icon: <GroupIcon />,
+        },
+      ],
+    },
+    {
+      label: "Bench",
+      value: "BENCH",
+      icon: <HourglassEmptyIcon />,
+      isParent: true,
+      children: [
+        // {
+        //   label: "Bench Form",
+        //   value: "BENCH_FORM",
+        //   component: <BenchForm />,
+        //   icon: <NoteAddIcon />,
+        // },
+        {
+          label: "Bench List",
+          value: "BENCH_LIST",
+          component: <BenchList />,
+          icon: <ListIcon />,
         },
       ],
     },
@@ -446,6 +461,26 @@ const TABS_BY_ROLE = {
           value: "BDMLIST",
           component: <BdmUsers />,
           icon: <SupervisorAccountIcon />,
+        },
+      ],
+    },
+    {
+      label: "Bench",
+      value: "BENCH",
+      icon: <HourglassEmptyIcon />,
+      isParent: true,
+      children: [
+        // {
+        //   label: "Bench Form",
+        //   value: "BENCH_FORM",
+        //   component: <BenchForm />,
+        //   icon: <NoteAddIcon />,
+        // },
+        {
+          label: "Bench List",
+          value: "BENCH_LIST",
+          component: <BenchList />,
+          icon: <ListIcon />,
         },
       ],
     },

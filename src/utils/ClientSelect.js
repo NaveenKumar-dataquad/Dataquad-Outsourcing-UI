@@ -1,22 +1,28 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchClients } from "../redux/features/clientSlice";
-import { Field } from "formik";
+import { useField } from "formik";
 import {
+  Select,
   MenuItem,
   CircularProgress,
   Typography,
   Box,
+  InputLabel,
+  FormControl,
+  FormHelperText,
   useTheme,
+  Divider,
 } from "@mui/material";
-import PersonOutline from "@mui/icons-material/PersonOutline";
-import { CustomSelectField } from "../components/Requirements/JobForm";
 
-const ClientSelect = ({ name }) => {
+const ClientSelect = ({ name, label = "Select Client", ...props }) => {
   const dispatch = useDispatch();
   const { clientsList, isLoading, error } = useSelector((state) => state.clients);
   const fetchCalled = useRef(false);
   const theme = useTheme();
+
+  // Formik hook
+  const [field, meta, helpers] = useField(name);
 
   // Fetch clients only once
   useEffect(() => {
@@ -26,35 +32,73 @@ const ClientSelect = ({ name }) => {
     }
   }, [dispatch]);
 
-  // Sort clients alphabetically (A to Z)
-  const sortedClients = clientsList
-    ? [...clientsList].sort((a, b) => a.clientName.localeCompare(b.clientName))
-    : [];
+  // Sort clients alphabetically
+  const sortedClients = useMemo(() => {
+    return clientsList ? [...clientsList].sort((a, b) => a.clientName.localeCompare(b.clientName)) : [];
+  }, [clientsList]);
+
+  // Generate menu items
+  const menuItems = useMemo(() => {
+    return sortedClients.flatMap((client) => [
+      <MenuItem
+        key={client.id}
+        value={client.clientName}
+        sx={{
+          fontWeight: 600,
+          padding: "10px 16px",
+          "&:hover": { backgroundColor: theme.palette.action.hover },
+          transition: "all 0.2s ease-in-out",
+        }}
+      >
+        {client.clientName}
+      </MenuItem>,
+
+      // Supporting customers (children)
+      ...(client.supportingCustomers || []).map((supportingCustomer, index) => (
+        <MenuItem
+          key={`${client.id}-supporting-${index}`}
+          value={`${client.clientName} - ${supportingCustomer}`}
+          sx={{
+            padding: "8px 16px",
+            pl: 4, // Indentation for child elements
+            fontSize: "0.875rem",
+            color: theme.palette.text.secondary,
+            backgroundColor: theme.palette.action.selected,
+            "&:hover": { backgroundColor: theme.palette.action.hover },
+            transition: "all 0.2s ease-in-out",
+          }}
+        >
+          {supportingCustomer}
+        </MenuItem>
+      )),
+      
+      <Divider key={`divider-${client.id}`} sx={{ my: 0.5 }} />,
+    ]);
+  }, [sortedClients, theme]);
 
   return (
-    <Box sx={{ width: "100%" }}> {/* Ensures it follows Grid width */}
-      <Field
-        name={name}
-        component={CustomSelectField}
-        label="Select Client"
-        icon={<PersonOutline fontSize="small" />}
+    <FormControl fullWidth error={meta.touched && Boolean(meta.error)} {...props}>
+      <InputLabel>{label}</InputLabel>
+      <Select
+        {...field}
+        label={label}
+        displayEmpty
+        renderValue={(selected) => selected || <em>{label}</em>}
         disabled={isLoading || !!error}
-        fullWidth
         MenuProps={{
           PaperProps: {
             sx: {
-              maxHeight: "40vh", // Ensures enough space for scrolling
+              maxHeight: "40vh",
               overflowY: "auto",
-              borderRadius: theme.shape.borderRadius,
+              borderRadius: 2,
               boxShadow: theme.shadows[3],
-              padding: theme.spacing(1),
-              width: "auto", // Adapts dynamically
-              minWidth: "100%", // Ensures it doesn't shrink smaller than the parent
+              p: 1,
             },
           },
         }}
-        sx={{
-          width: "100%", // Follows Grid width dynamically
+        onChange={(e) => {
+          helpers.setValue(e.target.value);
+          helpers.setTouched(true);
         }}
       >
         {/* Loading State */}
@@ -74,21 +118,11 @@ const ClientSelect = ({ name }) => {
         ) : sortedClients.length === 0 ? (
           <MenuItem disabled>No clients found</MenuItem>
         ) : (
-          sortedClients.map((client) => (
-            <MenuItem
-              key={client.id}
-              value={client.clientName}
-              sx={{
-                transition: "background-color 0.2s ease-in-out",
-                "&:hover": { backgroundColor: theme.palette.action.hover },
-              }}
-            >
-              {client.clientName}
-            </MenuItem>
-          ))
+          menuItems
         )}
-      </Field>
-    </Box>
+      </Select>
+      {meta.touched && meta.error && <FormHelperText>{meta.error}</FormHelperText>}
+    </FormControl>
   );
 };
 

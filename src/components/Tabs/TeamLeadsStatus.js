@@ -15,7 +15,7 @@ import DataTable from "../MuiComponents/DataTable";
 import ReusableTable from "../Bdm/DetailsBdm/ReusableTable";
 import BASE_URL from "../../redux/config";
 
-const RecruiterDetailsView = ({ recruiterData }) => {
+const TeamLeadDetailsView = ({ teamLeadData }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -91,11 +91,11 @@ const RecruiterDetailsView = ({ recruiterData }) => {
   ];
 
   const flattenPlacements = () => {
-    if (!recruiterData.placements) return [];
-    return Object.entries(recruiterData.placements).flatMap(([client, placements]) => 
+    if (!teamLeadData.placements) return [];
+    return Object.entries(teamLeadData.placements).flatMap(([client, placements]) => 
       placements.map(placement => ({
         ...placement,
-        clientName: client // Ensure clientName is set from the parent key
+        clientName: client
       }))
     );
   };
@@ -138,28 +138,28 @@ const RecruiterDetailsView = ({ recruiterData }) => {
           </Box>
         ) : (
           <>
-            {activeTab === 0 && recruiterData.jobDetails && (
+            {activeTab === 0 && teamLeadData.jobDetails && (
               <ReusableTable
                 columns={jobColumns}
-                data={Object.values(recruiterData.jobDetails).flat()}
+                data={Object.values(teamLeadData.jobDetails).flat()}
               />
             )}
 
-            {activeTab === 1 && recruiterData.submittedCandidates && (
+            {activeTab === 1 && teamLeadData.submittedCandidates && (
               <ReusableTable
                 columns={candidateColumns}
-                data={recruiterData.submittedCandidates}
+                data={teamLeadData.submittedCandidates}
               />
             )}
 
-            {activeTab === 2 && recruiterData.scheduledInterviews && (
+            {activeTab === 2 && teamLeadData.scheduledInterviews && (
               <ReusableTable
                 columns={interviewColumns}
-                data={recruiterData.scheduledInterviews}
+                data={teamLeadData.scheduledInterviews}
               />
             )}
 
-            {activeTab === 3 && recruiterData.placements && (
+            {activeTab === 3 && teamLeadData.placements && (
               <ReusableTable
                 columns={placementColumns}
                 data={flattenPlacements()}
@@ -172,19 +172,21 @@ const RecruiterDetailsView = ({ recruiterData }) => {
   );
 };
 
-const RecruitersStatus = () => {
-  const [data, setData] = useState([]);
+const TeamLeadsStatus = () => {
+  const [teamLeadsData, setTeamLeadsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedRecruiter, setSelectedRecruiter] = useState(null);
+  const [selectedTeamLead, setSelectedTeamLead] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   const fetchUserSpecificData = async () => {
     setIsRefreshing(true);
     try {
       const response = await axios.get(`${BASE_URL}/requirements/stats`);
-      setData(response.data);
+      // Filter for TEAMLEAD role only
+      const teamLeads = response.data.filter(user => user.role === "TEAMLEAD");
+      setTeamLeadsData(teamLeads);
       setError(null);
     } catch (err) {
       setError("Failed to fetch data.");
@@ -204,9 +206,9 @@ const RecruitersStatus = () => {
       const response = await axios.get(
         `${BASE_URL}/requirements/list/${employeeId}`
       );
-      setSelectedRecruiter(response.data);
+      setSelectedTeamLead(response.data);
     } catch (error) {
-      console.error("Error fetching recruiter details:", error);
+      console.error("Error fetching team lead details:", error);
     } finally {
       setDetailLoading(false);
     }
@@ -232,10 +234,10 @@ const RecruitersStatus = () => {
       ),
     },
     { key: "employeeName", label: "Name" },
-    { key: "role", label: "Role" },
+    { key: "employeeEmail", label: "Email" },
     { key: "numberOfSubmissions", label: "Submissions" },
     { key: "numberOfInterviews", label: "Interviews" },
-    { key: "numberOfPlacements", label: "Placements" },
+    { key: "numberOfPlacements", label: "Placements" }
   ];
 
   return (
@@ -253,22 +255,22 @@ const RecruitersStatus = () => {
         </Typography>
       ) : (
         <Grid container spacing={3}>
-          {!selectedRecruiter && !detailLoading && (
+          {!selectedTeamLead && !detailLoading && (
             <Grid item xs={12}>
               <DataTable
-                data={data}
+                data={teamLeadsData}
                 columns={mainTableColumns}
                 pageLimit={20}
-                title="Recruiters Status"
+                title="Team Leads Status"
                 onRefresh={fetchUserSpecificData}
                 isRefreshing={isRefreshing}
                 noDataMessage={
                   <Box sx={{ py: 4, textAlign: "center" }}>
                     <Typography variant="h6" color="text.secondary" gutterBottom>
-                      No Records Found
+                      No Team Leads Found
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      No requirements have been assigned yet.
+                      No team leads are currently registered in the system.
                     </Typography>
                   </Box>
                 }
@@ -295,7 +297,7 @@ const RecruitersStatus = () => {
             </Box>
           )}
 
-          {selectedRecruiter && !detailLoading && (
+          {selectedTeamLead && !detailLoading && (
             <Grid item xs={12}>
               <Box
                 display="flex"
@@ -308,14 +310,14 @@ const RecruitersStatus = () => {
                   variant="outlined"
                   size="small"
                   startIcon={<ArrowBack />}
-                  onClick={() => setSelectedRecruiter(null)}
+                  onClick={() => setSelectedTeamLead(null)}
                   sx={{ minWidth: 140 }}
                 >
-                  Back to Recruiters
+                  Back to Team Leads
                 </Button>
               </Box>
 
-              <RecruiterDetailsView recruiterData={selectedRecruiter} />
+              <TeamLeadDetailsView teamLeadData={selectedTeamLead} />
             </Grid>
           )}
         </Grid>
@@ -324,4 +326,4 @@ const RecruitersStatus = () => {
   );
 };
 
-export default RecruitersStatus;
+export default TeamLeadsStatus;
