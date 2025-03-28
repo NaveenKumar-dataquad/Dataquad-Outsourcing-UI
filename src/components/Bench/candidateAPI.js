@@ -42,13 +42,13 @@ export const candidateAPI = {
   },
 
   async fetchBenchList() {
-    return await axios.get(`${BASE_URL}/candidates/bench/getBenchList`);
+    return await axios.get(`${BASE_URL}/candidate/bench/getBenchList`);
   },
 
   async create(formData) {
     return await axios({
       method: "post",
-      url: `${BASE_URL}/candidates/bench/save`,
+      url: `${BASE_URL}/candidate/bench/save`,
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -57,7 +57,7 @@ export const candidateAPI = {
   async update(formData, candidateId) {
     return await axios({
       method: "put",
-      url: `${BASE_URL}/candidates/bench/updatebench/${candidateId}`,
+      url: `${BASE_URL}/candidate/bench/updatebench/${candidateId}`,
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -65,13 +65,13 @@ export const candidateAPI = {
 
   async delete(candidateId) {
     return await axios.delete(
-      `${BASE_URL}/candidates/bench/deletebench/${candidateId}`
+      `${BASE_URL}/candidate/bench/deletebench/${candidateId}`
     );
   },
 
   async downloadResume(candidateId) {
     return await axios.get(
-      `${BASE_URL}/candidates/bench/download/${candidateId}`,
+      `${BASE_URL}/candidate/bench/download/${candidateId}`,
       {
         responseType: "blob",
       }

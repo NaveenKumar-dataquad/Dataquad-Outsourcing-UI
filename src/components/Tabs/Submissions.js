@@ -519,7 +519,7 @@ const Submissions = () => {
         formData.append("resumeFiles", resumeFile);
       }
   
-      await axios.post(`${BASE_URL}/candidates/bench/save`, formData, {
+      await axios.post(`${BASE_URL}/candidate/bench/save`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
   
