@@ -4,7 +4,7 @@ const apiConfig = require('./apiConfig');
 
 // const BASE_URL = apiConfig.PROD_appconfig.PROD_BASE_URL;
 
-const BASE_URL = 'http://192.168.0.135:8080';
+const BASE_URL = 'http://182.18.177.16:444';
 
 
 export default BASE_URL
