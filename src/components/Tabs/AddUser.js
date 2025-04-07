@@ -47,7 +47,7 @@ const AddUser = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { status, error, response } = useSelector((state) => state.form || {});
 
-  const availableRoles = ["ADMIN", "EMPLOYEE", "SUPERADMIN", "TEAMLEAD","BDM"];
+  const availableRoles = ["ADMIN", "EMPLOYEE", "SUPERADMIN", "TEAMLEAD","BDM","PARTNER"];
 
   const SignUpSchema = Yup.object().shape({
     userId: Yup.string()

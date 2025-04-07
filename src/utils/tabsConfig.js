@@ -47,8 +47,17 @@ import BenchForm from "../components/Bench/BenchForm";
 import BenchList from "../components/Bench/BenchList";
 import { ListIcon } from "lucide-react";
 import TeamLeadsStatus from "../components/Tabs/TeamLeadsStatus";
+import PlacementsList from "../components/Placements/PlacementsList";
 
 const TABS_BY_ROLE = {
+  PARTNER: [
+    {
+      label: "Placements",
+      value: "PLACE_LIST",
+      component: <PlacementsList />,
+      icon: <ListIcon />,
+    },
+  ],
   EMPLOYEE: [
     {
       label: "Bench",

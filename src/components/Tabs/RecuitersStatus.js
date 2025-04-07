@@ -14,6 +14,12 @@ import { ArrowBack } from "@mui/icons-material";
 import DataTable from "../MuiComponents/DataTable";
 import ReusableTable from "../Bdm/DetailsBdm/ReusableTable";
 import BASE_URL from "../../redux/config";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../redux/features/employeesSlice";
+import RecruiterDetails from "../MuiComponents/RecruiterDetails";
+// import BdmDetailsLayout from "../Bdm/DetailsBdm/BdmDetailsLayout";
+
+
 
 const RecruiterDetailsView = ({ recruiterData }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -24,6 +30,18 @@ const RecruiterDetailsView = ({ recruiterData }) => {
     setActiveTab(newValue);
     setTimeout(() => setLoading(false), 300);
   };
+
+  const dispatch = useDispatch();
+  const {
+    employeesList,
+    fetchStatus,
+  } = useSelector((state) => state.employees);
+
+  useEffect(() => {
+    if (fetchStatus === "idle") {
+      dispatch(fetchEmployees());
+    }
+  }, [fetchStatus, dispatch]);
 
   const candidateColumns = [
     { key: "fullName", label: "Candidate Name" },
@@ -39,10 +57,14 @@ const RecruiterDetailsView = ({ recruiterData }) => {
       key: "overallFeedback",
       label: "Feedback",
       render: (feedback) =>
-        feedback ? feedback.split(",").map((item, index) => <div key={index}>{item.trim()}</div>) : "—"
-    }
+        feedback
+          ? feedback
+              .split(",")
+              .map((item, index) => <div key={index}>{item.trim()}</div>)
+          : "—",
+    },
   ];
-  
+
   const interviewColumns = [
     { key: "fullName", label: "Candidate Name" },
     { key: "candidateEmailId", label: "Candidate Email" },
@@ -54,13 +76,14 @@ const RecruiterDetailsView = ({ recruiterData }) => {
     { key: "qualification", label: "Qualification" },
     { key: "interviewStatus", label: "Interview Status" },
     { key: "interviewLevel", label: "Interview Level" },
-    { 
-      key: "interviewDateTime", 
+    {
+      key: "interviewDateTime",
       label: "Interview Date",
-      render: (value) => value ? new Date(value).toISOString().split('T')[0] : '—' 
-    }
+      render: (value) =>
+        value ? new Date(value).toISOString().split("T")[0] : "—",
+    },
   ];
-  
+
   const jobColumns = [
     { key: "jobId", label: "Job ID" },
     { key: "jobTitle", label: "Job Title" },
@@ -69,13 +92,14 @@ const RecruiterDetailsView = ({ recruiterData }) => {
     { key: "jobMode", label: "Job Mode" },
     { key: "noOfPositions", label: "No. of Positions" },
     { key: "qualification", label: "Qualification" },
-    { 
-      key: "postedDate", 
+    {
+      key: "postedDate",
       label: "Posted Date",
-      render: (value) => value ? new Date(value).toISOString().split('T')[0] : '—' 
+      render: (value) =>
+        value ? new Date(value).toISOString().split("T")[0] : "—",
     },
     { key: "assignedBy", label: "Assigned By" },
-    { key: "status", label: "Status" }
+    { key: "status", label: "Status" },
   ];
 
   const placementColumns = [
@@ -87,17 +111,17 @@ const RecruiterDetailsView = ({ recruiterData }) => {
     { key: "skills", label: "Skills" },
     { key: "interviewDateTime", label: "Placement Date" },
     { key: "candidateEmailId", label: "Email" },
-    { key: "contactNumber", label: "Contact" }
+    { key: "contactNumber", label: "Contact" },
   ];
 
   // Flatten submitted candidates from object to array
   const flattenSubmittedCandidates = () => {
     if (!recruiterData.submittedCandidates) return [];
     return Object.entries(recruiterData.submittedCandidates).flatMap(
-      ([client, candidates]) => 
-        candidates.map(candidate => ({ 
-          ...candidate, 
-          clientName: client // Ensure clientName is set from the parent key
+      ([client, candidates]) =>
+        candidates.map((candidate) => ({
+          ...candidate,
+          clientName: client, // Ensure clientName is set from the parent key
         }))
     );
   };
@@ -121,12 +145,17 @@ const RecruiterDetailsView = ({ recruiterData }) => {
   const flattenPlacements = () => {
     if (!recruiterData.placements) return [];
     return Object.entries(recruiterData.placements).flatMap(
-      ([client, placements]) => 
-        placements.map(placement => ({ 
-          ...placement, 
-          clientName: client 
+      ([client, placements]) =>
+        placements.map((placement) => ({
+          ...placement,
+          clientName: client,
         }))
     );
+  };
+
+  const getFilteredBdmDetails = () => {
+    if (!recruiterData?.employeeId) return [];
+    return employeesList.filter(emp => emp.employeeId === recruiterData.employeeId);
   };
 
   return (
@@ -149,10 +178,12 @@ const RecruiterDetailsView = ({ recruiterData }) => {
           },
         }}
       >
+        <Tab label="Recruiter Details" />
         <Tab label="Job Details" />
         <Tab label="Submitted Candidates" />
         <Tab label="Interviews" />
         <Tab label="Placements" />
+        
       </Tabs>
 
       <Box p={3}>
@@ -167,33 +198,34 @@ const RecruiterDetailsView = ({ recruiterData }) => {
           </Box>
         ) : (
           <>
-            {activeTab === 0 && (
-              <ReusableTable
-                columns={jobColumns}
-                data={flattenJobDetails()}
-              />
+          {activeTab === 0 && (
+              <RecruiterDetails recruiterData={recruiterData} />
+            )}
+            {activeTab === 1 && (
+              <ReusableTable columns={jobColumns} data={flattenJobDetails()} />
             )}
 
-            {activeTab === 1 && (
+            {activeTab === 2 && (
               <ReusableTable
                 columns={candidateColumns}
                 data={flattenSubmittedCandidates()}
               />
             )}
 
-            {activeTab === 2 && (
+            {activeTab === 3 && (
               <ReusableTable
                 columns={interviewColumns}
                 data={flattenInterviews()}
               />
             )}
 
-            {activeTab === 3 && (
+            {activeTab === 4 && (
               <ReusableTable
                 columns={placementColumns}
                 data={flattenPlacements()}
               />
             )}
+            
           </>
         )}
       </Box>
@@ -229,6 +261,7 @@ const RecruitersStatus = () => {
 
   const handleEmployeeIdClick = async (employeeId) => {
     setDetailLoading(true);
+    
     try {
       const response = await axios.get(
         `${BASE_URL}/requirements/list/${employeeId}`
@@ -262,6 +295,7 @@ const RecruitersStatus = () => {
     },
     { key: "employeeName", label: "Name" },
     { key: "role", label: "Role" },
+    { key: "numberOfRequirements", label: "Requirements" },
     { key: "numberOfSubmissions", label: "Submissions" },
     { key: "numberOfInterviews", label: "Interviews" },
     { key: "numberOfPlacements", label: "Placements" },
@@ -293,7 +327,11 @@ const RecruitersStatus = () => {
                 isRefreshing={isRefreshing}
                 noDataMessage={
                   <Box sx={{ py: 4, textAlign: "center" }}>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="h6"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       No Records Found
                     </Typography>
                     <Typography variant="body2" color="text.secondary">

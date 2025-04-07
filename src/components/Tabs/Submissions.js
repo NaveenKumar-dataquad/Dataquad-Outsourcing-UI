@@ -54,6 +54,7 @@ const Submissions = () => {
   const [candidateToDelete, setCandidateToDelete] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [currentResume, setCurrentResume] = useState(null);
+  
 
   const { user } = useSelector((state) => state.auth);
   const userId = user;
@@ -225,7 +226,7 @@ const Submissions = () => {
   };
 
   const fetchSubmissionData = async () => {
-    try {
+    try { 
       setLoading(true);
       const response = await axios.get(
         `${BASE_URL}/candidate/submissions/${userId}`,

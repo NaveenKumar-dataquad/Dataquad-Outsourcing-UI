@@ -60,7 +60,7 @@ const UsersList = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const VALID_ROLES = ["SUPERADMIN", "EMPLOYEE", "ADMIN", "TEAMLEAD",'BDM'];
+  const VALID_ROLES = ["SUPERADMIN", "EMPLOYEE", "ADMIN", "TEAMLEAD",'BDM',"PARTNER"];
 
   // Validation regex patterns
   const personalEmailRegex = /^[a-z0-9._%+-]+@gmail\.com$/;
@@ -531,6 +531,7 @@ const UsersList = () => {
                               <MenuItem value="BDM">BDM</MenuItem>
                               <MenuItem value="SUPERADMIN">SUPERADMIN</MenuItem>
                               <MenuItem value="TEAMLEAD">TEAMLEAD</MenuItem>
+                              <MenuItem value="PARTNER">PARTNER</MenuItem>
                             </Select>
                           </FormControl>
                         </Grid>

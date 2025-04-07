@@ -61,7 +61,10 @@ const SignInMain = () => {
             navigate("/dashboard");
           } else if (roles.includes("EMPLOYEE")) {
             navigate("/dashboard");
-          } else {
+          }else if (roles.includes("PARTNER")) {
+            navigate("/dashboard");
+          }
+           else {
             // Default route if no role matches
             navigate("/");
           }
